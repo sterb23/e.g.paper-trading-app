@@ -3,19 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Broker Terminal V6</title>
+<title>Broker Terminal V8</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- TOP BAR -->
 <div class="topbar">
-  <div class="brand">📊 Broker Terminal V6</div>
+  <div class="brand">📊 Broker Terminal V8</div>
 
-  <div id="balance">Balance: $100</div>
+  <div>Balance: $<span id="balance">100</span></div>
 
-  <div class="right">
+  <div>
     <span id="welcome"></span>
     <button onclick="logout()">Logout</button>
   </div>
@@ -23,7 +22,7 @@
 
 <!-- LOGIN -->
 <div id="loginScreen" class="screen">
-  <h1>Trading Platform</h1>
+  <h1>Trade Terminal V8</h1>
   <input id="usernameInput" placeholder="Username" />
   <button onclick="startApp()">Start</button>
 </div>
@@ -43,14 +42,15 @@
     <div id="market"></div>
   </div>
 
-  <div class="panel centerPanel">
+  <div class="panel center">
     <h3>Portfolio</h3>
     <div id="portfolio"></div>
+    <div id="pnl"></div>
   </div>
 
 </div>
 
-<!-- CHART MODAL -->
+<!-- CHART -->
 <div id="chartModal" class="hidden">
   <div class="chartBox">
     <div class="chartHeader">
