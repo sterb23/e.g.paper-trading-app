@@ -1,39 +1,62 @@
-let balance = 100;
-let portfolio = {};
+let balance = Number(localStorage.getItem("balance")) || 100;
+let username = localStorage.getItem("username") || "";
+let portfolio = JSON.parse(localStorage.getItem("portfolio") || "{}");
 
+/* MARKET */
 let prices = {
-  APPLE: 10,
-  TESLA: 20,
-  BTC: 50
+  PENNY: 2,
+  GAMESTOP: 15,
+  APPLE: 150,
+  TESLA: 250,
+  AMAZON: 3200,
+  BITCOIN: 45000,
+  GOLD: 2000
 };
 
-let chartData = [];
-let maLine = [];
-let rsiLine = [];
+/* 🔊 SOUND SYSTEM */
+const clickSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
+const buySound = new Audio("https://actions.google.com/sounds/v1/cash_register/coins.ogg");
+const sellSound = new Audio("https://actions.google.com/sounds/v1/cash_register/coins_long.ogg");
 
-let tutorialStep = 0;
-
+/* TUTORIAL (LONG BUSINESS STYLE) */
 let tutorial = [
-  "Welcome to TradeLearn Broker.",
-  "You start with $100 virtual money.",
-  "This is a real trading simulator.",
-  "Buy low, sell high to earn profit.",
-  "Prices move every few seconds.",
-  "You can trade multiple assets.",
-  "Apple, Tesla, BTC are available.",
-  "Your portfolio tracks your holdings.",
-  "Chart shows your account value.",
-  "Moving Average shows trend direction.",
-  "RSI shows momentum strength.",
-  "Now start trading!"
+  "Welcome to Trade Terminal.",
+  "This is a professional trading simulator.",
+  "You start with $100 virtual capital.",
+  "Your goal is to grow your account through smart decisions.",
+  "Markets include low-risk and high-risk assets.",
+  "Cheap assets move fast but are unstable.",
+  "Expensive assets move slower but are more powerful.",
+  "Bitcoin is highly volatile — high risk, high reward.",
+  "Gold is stable and safer for beginners.",
+  "Every price changes every few seconds.",
+  "Buy when price is low, sell when higher.",
+  "Your portfolio tracks all holdings automatically.",
+  "Your balance is updated instantly after each trade.",
+  "All progress is saved in your browser.",
+  "Even if you close or refresh, your account stays.",
+  "Now you are ready to start trading."
 ];
 
-/* LOGIN */
-function startApp() {
-  let username = document.getElementById("usernameInput").value;
-  if (!username) return alert("Enter username");
+let step = 0;
 
+/* SAVE */
+function save() {
+  localStorage.setItem("balance", balance);
   localStorage.setItem("username", username);
+  localStorage.setItem("portfolio", JSON.stringify(portfolio));
+}
+
+/* START */
+function startApp() {
+  let input = document.getElementById("usernameInput").value;
+
+  if (input) {
+    username = input;
+    save();
+  }
+
+  clickSound.play();
 
   document.getElementById("loginScreen").classList.add("hidden");
   document.getElementById("tutorialScreen").classList.remove("hidden");
@@ -41,19 +64,16 @@ function startApp() {
   showTutorial();
 }
 
-/* TUTORIAL (FORCED) */
+/* TUTORIAL */
 function showTutorial() {
-  document.getElementById("tText").innerText =
-    tutorial[tutorialStep];
+  document.getElementById("tutorialText").innerText = tutorial[step];
 }
 
 function nextTutorial() {
-  tutorialStep++;
+  clickSound.play();
 
-  if (tutorialStep >= tutorial.length) {
-    finishTutorial();
-    return;
-  }
+  step++;
+  if (step >= tutorial.length) return finishTutorial();
 
   showTutorial();
 }
@@ -62,13 +82,13 @@ function finishTutorial() {
   document.getElementById("tutorialScreen").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
 
-  let username = localStorage.getItem("username");
-
   document.getElementById("welcome").innerText =
     "Welcome " + username;
 
   renderMarket();
-  setInterval(updateMarket, 2500);
+  updateBalance();
+
+  setInterval(updatePrices, 2500);
 }
 
 /* MARKET */
@@ -80,6 +100,7 @@ function renderMarket() {
       <div class="stock">
         <b>${s}</b><br>
         $${prices[s].toFixed(2)}<br>
+
         <button onclick="buy('${s}')">Buy</button>
         <button onclick="sell('${s}')">Sell</button>
       </div>
@@ -89,54 +110,50 @@ function renderMarket() {
   document.getElementById("market").innerHTML = html;
 }
 
-/* PRICE ENGINE */
-function updateMarket() {
+/* PRICE UPDATE */
+function updatePrices() {
   for (let s in prices) {
-    let change = (Math.random() - 0.5) * 3;
+    let change = (Math.random() - 0.5) * 10;
     prices[s] = Math.max(1, prices[s] + change);
   }
 
   renderMarket();
-  updatePortfolio();
   updateBalance();
-  updateChart();
+  updatePortfolio();
 }
 
 /* BUY */
 function buy(stock) {
-  if (balance < prices[stock]) return alert("Not enough balance");
+  clickSound.play();
+
+  if (balance < prices[stock]) return alert("Not enough money");
 
   balance -= prices[stock];
   portfolio[stock] = (portfolio[stock] || 0) + 1;
 
-  popup("BUY " + stock);
+  buySound.play();
+  save();
 }
 
 /* SELL */
 function sell(stock) {
-  if (!portfolio[stock]) return;
+  clickSound.play();
 
-  portfolio[stock]--;
-  balance += prices[stock];
+  if (!portfolio[stock]) return alert("No shares");
 
-  popup("SELL " + stock);
-}
+  let total = portfolio[stock] * prices[stock];
 
-/* POPUP */
-function popup(text) {
-  let div = document.createElement("div");
-  div.innerText = text;
-  div.style.position = "fixed";
-  div.style.top = "20px";
-  div.style.right = "20px";
-  div.style.background = "#2563eb";
-  div.style.padding = "10px";
-  div.style.borderRadius = "8px";
-  div.style.animation = "fade 1s ease";
+  let ok = confirm(
+    `Sell ${portfolio[stock]} ${stock}?\n\nYou receive: $${total.toFixed(2)}`
+  );
 
-  document.body.appendChild(div);
+  if (!ok) return;
 
-  setTimeout(() => div.remove(), 1000);
+  balance += total;
+  portfolio[stock] = 0;
+
+  sellSound.play();
+  save();
 }
 
 /* PORTFOLIO */
@@ -155,68 +172,4 @@ function updatePortfolio() {
 function updateBalance() {
   document.getElementById("balance").innerText =
     "Balance: $" + balance.toFixed(2);
-}
-
-/* CHART + INDICATORS */
-function updateChart() {
-  let total = balance;
-
-  for (let s in portfolio) {
-    total += portfolio[s] * prices[s];
-  }
-
-  chartData.push(total);
-  if (chartData.length > 40) chartData.shift();
-
-  calculateMA();
-  calculateRSI();
-  drawChart();
-}
-
-/* MOVING AVERAGE */
-function calculateMA() {
-  maLine = [];
-  let sum = 0;
-
-  for (let i = 0; i < chartData.length; i++) {
-    sum += chartData[i];
-    maLine.push(sum / (i + 1));
-  }
-}
-
-/* RSI */
-function calculateRSI() {
-  rsiLine = [];
-
-  for (let i = 1; i < chartData.length; i++) {
-    let gain = Math.max(0, chartData[i] - chartData[i - 1]);
-    let loss = Math.max(0, chartData[i - 1] - chartData[i]);
-
-    let rsi = 100 - (100 / (1 + (gain / (loss + 1))));
-    rsiLine.push(rsi);
-  }
-}
-
-/* DRAW CHART */
-function drawChart() {
-  let canvas = document.getElementById("chart");
-  let ctx = canvas.getContext("2d");
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  /* PRICE LINE */
-  ctx.beginPath();
-  for (let i = 0; i < chartData.length; i++) {
-    ctx.lineTo(i * 8, canvas.height - chartData[i] / 2);
-  }
-  ctx.strokeStyle = "#2563eb";
-  ctx.stroke();
-
-  /* MA LINE */
-  ctx.beginPath();
-  for (let i = 0; i < maLine.length; i++) {
-    ctx.lineTo(i * 8, canvas.height - maLine[i] / 2);
-  }
-  ctx.strokeStyle = "orange";
-  ctx.stroke();
 }
