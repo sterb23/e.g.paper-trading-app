@@ -3,28 +3,22 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Broker Terminal</title>
+<title>Broker Terminal PRO</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- ================= TOP NAV BAR ================= -->
+<!-- ================= TOP BAR ================= -->
 <div class="topbar">
+  <div class="brand">📈 Broker Terminal</div>
 
-  <div class="brand">
-    📈 Broker Terminal
-  </div>
-
-  <div class="center">
-    <div id="balance">Balance: $100</div>
-  </div>
+  <div id="balance">Balance: $100</div>
 
   <div class="right">
-    <div id="welcome">Guest</div>
+    <span id="welcome">Guest</span>
     <button onclick="logout()">Logout</button>
   </div>
-
 </div>
 
 <!-- ================= LOGIN ================= -->
@@ -34,31 +28,19 @@
   <button onclick="startApp()">Start Trading</button>
 </div>
 
-<!-- ================= TUTORIAL ================= -->
-<div id="tutorialScreen" class="screen hidden">
-  <h2>Getting Started</h2>
-  <p id="tutorialText"></p>
-  <button onclick="nextTutorial()">Next</button>
-</div>
-
-<!-- ================= MAIN DASHBOARD ================= -->
+<!-- ================= MAIN APP ================= -->
 <div id="app" class="hidden dashboard">
 
-  <!-- LEFT: MARKET WATCH -->
+  <!-- MARKET -->
   <div class="panel left">
     <h3>Market Watch</h3>
     <div id="market"></div>
   </div>
 
-  <!-- CENTER: PORTFOLIO -->
+  <!-- PORTFOLIO -->
   <div class="panel centerPanel">
-    <h3>Portfolio Overview</h3>
+    <h3>Portfolio</h3>
     <div id="portfolio"></div>
-
-    <div class="card">
-      <h4>Account Summary</h4>
-      <p id="summary">Loading...</p>
-    </div>
   </div>
 
 </div>
