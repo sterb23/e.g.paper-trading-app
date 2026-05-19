@@ -1,8 +1,8 @@
-/* ================= SESSION ================= */
+/* ================= STATE ================= */
 let session = JSON.parse(localStorage.getItem("session")) || {
   loggedIn: false,
   username: "",
-  firstTime: true
+  tutorialDone: false
 };
 
 let balance = Number(localStorage.getItem("balance")) || 100;
@@ -10,8 +10,10 @@ let portfolio = JSON.parse(localStorage.getItem("portfolio") || "{}");
 
 /* ================= MARKET ================= */
 let prices = {
-  AAPL: 180, TSLA: 250, MSFT: 420, AMZN: 3200,
-  GOOG: 2800, META: 500, NVDA: 900, NFLX: 600
+  AAPL: 180, TSLA: 250, MSFT: 420,
+  AMZN: 3200, GOOG: 2800, META: 500,
+  NVDA: 900, NFLX: 600, AMD: 150,
+  BTC: 42000
 };
 
 let history = {};
@@ -26,40 +28,64 @@ function save() {
 
 /* ================= INIT ================= */
 window.onload = () => {
-  if (session.loggedIn) {
-    enterApp();
-  } else {
-    document.getElementById("loginScreen").classList.remove("hidden");
-  }
+  if (session.loggedIn) enterApp();
+  else document.getElementById("loginScreen").classList.remove("hidden");
 
-  setInterval(updatePrices, 2000);
+  setInterval(updatePrices, 1200);
 };
 
 /* ================= LOGIN ================= */
 function startApp() {
   let name = document.getElementById("usernameInput").value;
-  if (!name) return alert("Enter username");
+  if (!name) return;
 
   session.username = name;
   session.loggedIn = true;
 
-  if (session.firstTime) {
-    balance = 100;
-    portfolio = {};
-    session.firstTime = false;
-  }
-
   save();
-  enterApp();
+
+  document.getElementById("loginScreen").classList.add("hidden");
+
+  if (!session.tutorialDone) startTutorial();
+  else enterApp();
 }
 
-/* ================= ENTER APP ================= */
-function enterApp() {
-  document.getElementById("loginScreen").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
+/* ================= TUTORIAL ================= */
+let tutorial = [
+  "Welcome to Broker Terminal V6",
+  "Charts now behave like real trading tools",
+  "You can zoom + drag charts",
+  "Crosshair shows price levels",
+  "Let’s trade"
+];
 
-  document.getElementById("welcome").innerText =
-    session.username;
+let step = 0;
+
+function startTutorial() {
+  document.getElementById("tutorialScreen").classList.remove("hidden");
+  showTutorial();
+}
+
+function showTutorial() {
+  document.getElementById("tutorialText").innerText = tutorial[step];
+}
+
+function nextTutorial() {
+  step++;
+  if (step >= tutorial.length) {
+    session.tutorialDone = true;
+    save();
+    document.getElementById("tutorialScreen").classList.add("hidden");
+    enterApp();
+    return;
+  }
+  showTutorial();
+}
+
+/* ================= APP ================= */
+function enterApp() {
+  document.getElementById("app").classList.remove("hidden");
+  document.getElementById("welcome").innerText = session.username;
 
   renderMarket();
   updateUI();
@@ -97,7 +123,7 @@ function renderMarket() {
 function updatePrices() {
   for (let s in prices) {
     let open = prices[s];
-    let change = (Math.random() - 0.5) * (open * 0.02);
+    let change = (Math.random() - 0.5) * open * 0.012;
     let close = Math.max(1, open + change);
 
     prices[s] = close;
@@ -109,7 +135,7 @@ function updatePrices() {
       low: Math.min(open, close)
     });
 
-    if (history[s].length > 120) history[s].shift();
+    if (history[s].length > 300) history[s].shift();
   }
 
   renderMarket();
@@ -117,21 +143,18 @@ function updatePrices() {
 }
 
 /* ================= TRADE ================= */
-function buy(stock) {
-  if (balance < prices[stock]) return;
-
-  balance -= prices[stock];
-  portfolio[stock] = (portfolio[stock] || 0) + 1;
+function buy(s) {
+  if (balance < prices[s]) return;
+  balance -= prices[s];
+  portfolio[s] = (portfolio[s] || 0) + 1;
   save();
   updateUI();
 }
 
-function sell(stock) {
-  if (!portfolio[stock]) return;
-
-  balance += prices[stock] * portfolio[stock];
-  portfolio[stock] = 0;
-
+function sell(s) {
+  if (!portfolio[s]) return;
+  balance += prices[s] * portfolio[s];
+  portfolio[s] = 0;
   save();
   updateUI();
 }
@@ -150,32 +173,132 @@ function updateUI() {
     html || "No holdings";
 }
 
-/* ================= CHART ================= */
+/* ================= CHART SYSTEM ================= */
+let currentStock = null;
+let zoom = 1;
+let offsetX = 0;
+let dragging = false;
+let lastX = 0;
+
 function openChart(stock) {
-  let w = window.open("", "_blank", "width=800,height=500");
+  currentStock = stock;
+  document.getElementById("chartModal").classList.remove("hidden");
+  document.getElementById("chartTitle").innerText = stock;
 
-  let data = history[stock];
+  setupChart();
+  drawChart();
+}
 
-  w.document.write("<canvas id='c'></canvas>");
+function closeChart() {
+  document.getElementById("chartModal").classList.add("hidden");
+}
 
-  setTimeout(() => {
-    let c = w.document.getElementById("c");
-    let ctx = c.getContext("2d");
+/* ================= INTERACTIONS ================= */
+function setupChart() {
+  let canvas = document.getElementById("chartCanvas");
 
-    c.width = 800;
-    c.height = 500;
+  canvas.onmousedown = e => {
+    dragging = true;
+    lastX = e.clientX;
+  };
 
-    let max = Math.max(...data.map(d => d.high));
-    let min = Math.min(...data.map(d => d.low));
-    let range = max - min;
+  canvas.onmouseup = () => dragging = false;
+  canvas.onmouseleave = () => dragging = false;
 
-    data.forEach((d, i) => {
-      let x = i * 6;
-      let o = 500 - ((d.open - min) / range) * 500;
-      let cl = 500 - ((d.close - min) / range) * 500;
+  canvas.onmousemove = e => {
+    if (dragging) {
+      offsetX += e.clientX - lastX;
+      lastX = e.clientX;
+      drawChart();
+    } else {
+      drawChart(e);
+    }
+  };
 
-      ctx.fillStyle = d.close > d.open ? "green" : "red";
-      ctx.fillRect(x, Math.min(o, cl), 4, Math.abs(o - cl));
-    });
-  }, 200);
+  canvas.onwheel = e => {
+    e.preventDefault();
+    zoom += e.deltaY < 0 ? 0.1 : -0.1;
+    zoom = Math.max(0.4, Math.min(6, zoom));
+    drawChart();
+  };
+}
+
+/* ================= V6 CHART ENGINE ================= */
+function drawChart(mouseEvent) {
+  let canvas = document.getElementById("chartCanvas");
+  let ctx = canvas.getContext("2d");
+
+  let data = history[currentStock];
+  if (!data || data.length < 20) return;
+
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  let max = Math.max(...data.map(d => d.high));
+  let min = Math.min(...data.map(d => d.low));
+  let range = max - min || 1;
+
+  let candleW = (canvas.width / data.length) * zoom;
+
+  let mouseX = 0;
+  let mouseY = 0;
+
+  if (mouseEvent) {
+    let rect = canvas.getBoundingClientRect();
+    mouseX = mouseEvent.clientX - rect.left;
+    mouseY = mouseEvent.clientY - rect.top;
+  }
+
+  for (let i = 0; i < data.length; i++) {
+    let d = data[i];
+
+    let x = i * candleW + offsetX;
+
+    if (x < -100 || x > canvas.width + 100) continue;
+
+    let o = canvas.height - ((d.open - min) / range) * canvas.height;
+    let c = canvas.height - ((d.close - min) / range) * canvas.height;
+    let h = canvas.height - ((d.high - min) / range) * canvas.height;
+    let l = canvas.height - ((d.low - min) / range) * canvas.height;
+
+    ctx.strokeStyle = "#9ca3af";
+    ctx.beginPath();
+    ctx.moveTo(x + candleW / 2, h);
+    ctx.lineTo(x + candleW / 2, l);
+    ctx.stroke();
+
+    ctx.fillStyle = d.close > d.open ? "#22c55e" : "#ef4444";
+
+    ctx.fillRect(
+      x,
+      Math.min(o, c),
+      candleW * 0.7,
+      Math.abs(o - c)
+    );
+  }
+
+  /* CROSSHAIR */
+  if (mouseEvent) {
+    ctx.strokeStyle = "rgba(59,130,246,0.6)";
+    ctx.setLineDash([5, 5]);
+
+    ctx.beginPath();
+    ctx.moveTo(mouseX, 0);
+    ctx.lineTo(mouseX, canvas.height);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, mouseY);
+    ctx.lineTo(canvas.width, mouseY);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+    let price = max - (mouseY / canvas.height) * range;
+
+    ctx.fillStyle = "#3b82f6";
+    ctx.fillText(price.toFixed(2), mouseX + 8, mouseY - 8);
+  }
 }
