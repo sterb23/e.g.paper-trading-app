@@ -5,7 +5,6 @@ body {
   color: white;
 }
 
-/* screens */
 .screen {
   height: 100vh;
   display: flex;
@@ -26,10 +25,9 @@ input {
   color: white;
 }
 
-/* 🔵 MAIN BUTTON COLOR CHANGED TO BLUE */
 button {
   padding: 10px 15px;
-  background: #2563eb; /* BLUE */
+  background: #2563eb;
   border: none;
   color: white;
   border-radius: 8px;
@@ -45,7 +43,6 @@ button:active {
   transform: scale(0.95);
 }
 
-/* top bar */
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -54,7 +51,6 @@ button:active {
   border-bottom: 1px solid #1f2a44;
 }
 
-/* layout */
 .container {
   padding: 10px;
 }
@@ -64,8 +60,8 @@ button:active {
   padding: 10px;
   margin: 5px;
   border-radius: 8px;
-  transition: 0.2s;
   border: 1px solid #1f2a44;
+  transition: 0.2s;
 }
 
 .stock:hover {
@@ -73,18 +69,13 @@ button:active {
   border-color: #2563eb;
 }
 
-/* chart styling feel */
 canvas {
   background: #0f172a;
   border-radius: 8px;
   border: 1px solid #1f2a44;
 }
 
-/* animation */
 @keyframes fade {
   from {opacity: 0;}
   to {opacity: 1;}
-}@keyframes fade {
-  from {opacity: 0; transform: translateY(-10px);}
-  to {opacity: 1; transform: translateY(0);}
 }
