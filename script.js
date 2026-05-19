@@ -7,18 +7,28 @@ let prices = {
   BTC: 50
 };
 
-/* CHART DATA (OHLC CANDLES) */
-let candles = [];
 let chartData = [];
-
-/* INDICATORS */
 let maLine = [];
 let rsiLine = [];
 
-/* TUTORIAL SKIPPED FOR SHORTNESS */
 let tutorialStep = 0;
 
-/* INIT */
+let tutorial = [
+  "Welcome to TradeLearn Broker.",
+  "You start with $100 virtual money.",
+  "This is a real trading simulator.",
+  "Buy low, sell high to earn profit.",
+  "Prices move every few seconds.",
+  "You can trade multiple assets.",
+  "Apple, Tesla, BTC are available.",
+  "Your portfolio tracks your holdings.",
+  "Chart shows your account value.",
+  "Moving Average shows trend direction.",
+  "RSI shows momentum strength.",
+  "Now start trading!"
+];
+
+/* LOGIN */
 function startApp() {
   let username = document.getElementById("usernameInput").value;
   if (!username) return alert("Enter username");
@@ -26,45 +36,42 @@ function startApp() {
   localStorage.setItem("username", username);
 
   document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("tutorialScreen").classList.remove("hidden");
+
+  showTutorial();
+}
+
+/* TUTORIAL (FORCED) */
+function showTutorial() {
+  document.getElementById("tText").innerText =
+    tutorial[tutorialStep];
+}
+
+function nextTutorial() {
+  tutorialStep++;
+
+  if (tutorialStep >= tutorial.length) {
+    finishTutorial();
+    return;
+  }
+
+  showTutorial();
+}
+
+function finishTutorial() {
+  document.getElementById("tutorialScreen").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
+
+  let username = localStorage.getItem("username");
 
   document.getElementById("welcome").innerText =
     "Welcome " + username;
 
   renderMarket();
-  setInterval(updateMarket, 2000);
+  setInterval(updateMarket, 2500);
 }
 
-/* MARKET ENGINE */
-function updateMarket() {
-  for (let s in prices) {
-    let change = (Math.random() - 0.5) * 3;
-    prices[s] = Math.max(1, prices[s] + change);
-
-    generateCandle(s);
-  }
-
-  renderMarket();
-  updatePortfolio();
-  updateBalance();
-  updateChart();
-}
-
-/* CANDLE GENERATION */
-function generateCandle(stock) {
-  let last = prices[stock];
-
-  let open = last;
-  let close = last + (Math.random() - 0.5) * 2;
-  let high = Math.max(open, close) + Math.random();
-  let low = Math.min(open, close) - Math.random();
-
-  candles.push({ open, high, low, close });
-
-  if (candles.length > 30) candles.shift();
-}
-
-/* MARKET UI */
+/* MARKET */
 function renderMarket() {
   let html = "";
 
@@ -82,9 +89,22 @@ function renderMarket() {
   document.getElementById("market").innerHTML = html;
 }
 
-/* BUY/SELL */
+/* PRICE ENGINE */
+function updateMarket() {
+  for (let s in prices) {
+    let change = (Math.random() - 0.5) * 3;
+    prices[s] = Math.max(1, prices[s] + change);
+  }
+
+  renderMarket();
+  updatePortfolio();
+  updateBalance();
+  updateChart();
+}
+
+/* BUY */
 function buy(stock) {
-  if (balance < prices[stock]) return alert("No money");
+  if (balance < prices[stock]) return alert("Not enough balance");
 
   balance -= prices[stock];
   portfolio[stock] = (portfolio[stock] || 0) + 1;
@@ -92,6 +112,7 @@ function buy(stock) {
   popup("BUY " + stock);
 }
 
+/* SELL */
 function sell(stock) {
   if (!portfolio[stock]) return;
 
@@ -101,7 +122,7 @@ function sell(stock) {
   popup("SELL " + stock);
 }
 
-/* POPUP ANIMATION */
+/* POPUP */
 function popup(text) {
   let div = document.createElement("div");
   div.innerText = text;
@@ -149,14 +170,13 @@ function updateChart() {
 
   calculateMA();
   calculateRSI();
-
   drawChart();
 }
 
 /* MOVING AVERAGE */
 function calculateMA() {
-  let sum = 0;
   maLine = [];
+  let sum = 0;
 
   for (let i = 0; i < chartData.length; i++) {
     sum += chartData[i];
@@ -164,7 +184,7 @@ function calculateMA() {
   }
 }
 
-/* RSI (SIMPLIFIED) */
+/* RSI */
 function calculateRSI() {
   rsiLine = [];
 
@@ -187,8 +207,7 @@ function drawChart() {
   /* PRICE LINE */
   ctx.beginPath();
   for (let i = 0; i < chartData.length; i++) {
-    let y = canvas.height - chartData[i] / 2;
-    ctx.lineTo(i * 10, y);
+    ctx.lineTo(i * 8, canvas.height - chartData[i] / 2);
   }
   ctx.strokeStyle = "#2563eb";
   ctx.stroke();
@@ -196,8 +215,7 @@ function drawChart() {
   /* MA LINE */
   ctx.beginPath();
   for (let i = 0; i < maLine.length; i++) {
-    let y = canvas.height - maLine[i] / 2;
-    ctx.lineTo(i * 10, y);
+    ctx.lineTo(i * 8, canvas.height - maLine[i] / 2);
   }
   ctx.strokeStyle = "orange";
   ctx.stroke();
