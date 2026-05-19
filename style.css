@@ -1,44 +1,80 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0f172a;
+  font-family: Arial;
+  background: #0b1220;
   color: white;
+}
+
+/* screens */
+.screen {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   height: 100vh;
+  animation: fadeIn 0.6s ease;
 }
 
-.container {
-  background: #1e293b;
-  padding: 25px;
-  border-radius: 12px;
-  width: 300px;
-  text-align: center;
+.hidden {
+  display: none;
 }
 
+/* inputs */
 input {
-  width: 100%;
   padding: 10px;
-  margin: 8px 0;
+  margin: 10px;
+  border-radius: 8px;
   border: none;
-  border-radius: 6px;
 }
 
+/* buttons */
 button {
-  width: 100%;
-  padding: 10px;
+  padding: 10px 15px;
+  margin: 5px;
   background: #22c55e;
   border: none;
   color: white;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
+  transition: 0.2s;
 }
 
-button:hover {
-  background: #16a34a;
+button:active {
+  transform: scale(0.95);
 }
 
-#output {
-  margin-top: 15px;
+/* layout */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: #111827;
+}
+
+.container {
+  padding: 10px;
+}
+
+/* market items */
+.stock {
+  background: #1f2937;
+  padding: 10px;
+  margin: 5px;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+.stock:hover {
+  transform: scale(1.02);
+}
+
+/* tutorial */
+#tutorial {
+  text-align: center;
+}
+
+/* animation */
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity: 1;}
 }
