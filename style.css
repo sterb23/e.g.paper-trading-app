@@ -1,69 +1,34 @@
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #05070c;
-  color: #e5e7eb;
-}
-
-/* screens */
-.screen {
-  height: 100vh;
+/* ===== CHART OVERLAY ===== */
+#chartOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
 
-.hidden { display: none; }
-
-input {
-  padding: 10px;
-  margin: 10px;
-  border-radius: 6px;
-  border: 1px solid #1f2937;
+#chartBox {
   background: #0b1220;
-  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #1f2937;
 }
 
-/* BUTTONS */
-button {
-  padding: 10px 15px;
-  background: #111827;
-  border: 1px solid #374151;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.15s;
-}
-
-button:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 0 10px #3b82f6;
-}
-
-button:active {
-  transform: scale(0.97);
-}
-
-/* TOP BAR */
-.topbar {
+#chartHeader {
   display: flex;
   justify-content: space-between;
-  padding: 10px;
-  background: #0a0f18;
-  border-bottom: 1px solid #1f2937;
+  color: white;
+  margin-bottom: 10px;
 }
 
-/* CONTAINER */
-.container {
-  padding: 10px;
-}
-
-/* STOCK CARD */
-.stock {
-  background: #0b1220;
-  padding: 10px;
-  margin: 6px;
-  border-radius: 6px;
-  border: 1px solid #1f2937;
+#chartHeader button {
+  background: red;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  cursor: pointer;
 }
