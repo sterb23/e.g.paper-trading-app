@@ -3,65 +3,62 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Trade Terminal PRO</title>
+<title>Broker Terminal</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
+<!-- ================= TOP NAV BAR ================= -->
+<div class="topbar">
+
+  <div class="brand">
+    📈 Broker Terminal
+  </div>
+
+  <div class="center">
+    <div id="balance">Balance: $100</div>
+  </div>
+
+  <div class="right">
+    <div id="welcome">Guest</div>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+</div>
+
 <!-- ================= LOGIN ================= -->
 <div id="loginScreen" class="screen">
-  <h1>Trade Terminal PRO</h1>
-
+  <h1>Welcome Trader</h1>
   <input id="usernameInput" placeholder="Enter username" />
-
   <button onclick="startApp()">Start Trading</button>
 </div>
 
 <!-- ================= TUTORIAL ================= -->
 <div id="tutorialScreen" class="screen hidden">
-  <h2>Onboarding</h2>
-
+  <h2>Getting Started</h2>
   <p id="tutorialText"></p>
-
   <button onclick="nextTutorial()">Next</button>
 </div>
 
-<!-- ================= MAIN APP ================= -->
-<div id="app" class="hidden">
+<!-- ================= MAIN DASHBOARD ================= -->
+<div id="app" class="hidden dashboard">
 
-  <!-- TOP BAR -->
-  <div class="topbar">
-
-    <div class="left">
-      <div id="welcome">Welcome</div>
-    </div>
-
-    <div class="center">
-      <div id="balance">Balance: $100</div>
-    </div>
-
-    <div class="right">
-      <button onclick="logout()">Logout</button>
-    </div>
-
+  <!-- LEFT: MARKET WATCH -->
+  <div class="panel left">
+    <h3>Market Watch</h3>
+    <div id="market"></div>
   </div>
 
-  <!-- MAIN LAYOUT -->
-  <div class="layout">
+  <!-- CENTER: PORTFOLIO -->
+  <div class="panel centerPanel">
+    <h3>Portfolio Overview</h3>
+    <div id="portfolio"></div>
 
-    <!-- MARKET -->
-    <div class="panel">
-      <h3>Market</h3>
-      <div id="market"></div>
+    <div class="card">
+      <h4>Account Summary</h4>
+      <p id="summary">Loading...</p>
     </div>
-
-    <!-- PORTFOLIO -->
-    <div class="panel">
-      <h3>Portfolio</h3>
-      <div id="portfolio"></div>
-    </div>
-
   </div>
 
 </div>
