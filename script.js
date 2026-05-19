@@ -1,15 +1,8 @@
-/* =====================================================
-   TRADE TERMINAL PRO — FULL VERSION
-   Candles + Indicators + Save + Tutorial + Portfolio
-===================================================== */
-
 let balance = Number(localStorage.getItem("balance")) || 100;
 let username = localStorage.getItem("username") || "";
 let portfolio = JSON.parse(localStorage.getItem("portfolio") || "{}");
 
-/* =========================
-   MARKET (20+ REAL STOCKS)
-========================= */
+/* ================= MARKET ================= */
 let prices = {
   AAPL: 180, TSLA: 250, MSFT: 420, AMZN: 3200, GOOG: 2800,
   META: 500, NVDA: 900, NFLX: 600, AMD: 150, INTC: 45,
@@ -18,56 +11,20 @@ let prices = {
   GOLD: 2000, BTC: 45000
 };
 
-/* =========================
-   CANDLE DATA
-========================= */
+/* ================= HISTORY ================= */
 let history = {};
 for (let s in prices) history[s] = [];
 
-/* =========================
-   TUTORIAL (FULL PRO VERSION)
-========================= */
-let tutorial = [
-  "Welcome to Trade Terminal Pro.",
-  "This is a professional trading simulator.",
-  "You start with $100 virtual capital.",
-  "Markets include real-world stock tickers.",
-  "AAPL, TSLA, NVDA represent real companies.",
-  "Prices update every few seconds automatically.",
-  "Each asset behaves differently depending on volatility.",
-  "High volatility = higher risk and reward.",
-  "Low volatility = safer but slower growth.",
-  "You can BUY and SELL at any time.",
-  "Your portfolio tracks all holdings.",
-  "Candlestick charts show price movement.",
-  "Green candles = price increased.",
-  "Red candles = price decreased.",
-  "Moving Average shows trend direction.",
-  "RSI shows momentum strength.",
-  "You can zoom charts and switch timeframes.",
-  "All data is saved in your browser.",
-  "Even after refresh, your account stays intact.",
-  "This is a training simulator, not real money.",
-  "Now you are ready to trade."
-];
-
-let step = 0;
-
-/* =========================
-   SAVE SYSTEM
-========================= */
+/* ================= SAVE ================= */
 function save() {
   localStorage.setItem("balance", balance);
   localStorage.setItem("username", username);
   localStorage.setItem("portfolio", JSON.stringify(portfolio));
 }
 
-/* =========================
-   START APP
-========================= */
+/* ================= START ================= */
 function startApp() {
   let input = document.getElementById("usernameInput").value;
-
   if (input) username = input;
 
   save();
@@ -78,9 +35,20 @@ function startApp() {
   showTutorial();
 }
 
-/* =========================
-   TUTORIAL SYSTEM
-========================= */
+/* ================= TUTORIAL ================= */
+let tutorial = [
+  "Welcome to Trade Terminal Pro",
+  "You start with $100",
+  "Buy low, sell high",
+  "Each stock moves differently",
+  "Charts show real candlestick data",
+  "Click stock → view full chart popup",
+  "Close chart anytime with X",
+  "Now start trading"
+];
+
+let step = 0;
+
 function showTutorial() {
   document.getElementById("tutorialText").innerText = tutorial[step];
 }
@@ -95,8 +63,7 @@ function finishTutorial() {
   document.getElementById("tutorialScreen").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
 
-  document.getElementById("welcome").innerText =
-    "Welcome " + username;
+  document.getElementById("welcome").innerText = "Welcome " + username;
 
   renderMarket();
   updateBalance();
@@ -104,9 +71,7 @@ function finishTutorial() {
   setInterval(updatePrices, 2000);
 }
 
-/* =========================
-   MARKET RENDER
-========================= */
+/* ================= MARKET ================= */
 function renderMarket() {
   let html = "";
 
@@ -114,11 +79,11 @@ function renderMarket() {
     html += `
       <div class="stock">
         <b>${s}</b><br>
-        Price: $${prices[s].toFixed(2)}<br>
+        $${prices[s].toFixed(2)}<br>
 
         <button onclick="buy('${s}')">Buy</button>
         <button onclick="sell('${s}')">Sell</button>
-        <button onclick="viewChart('${s}')">Chart</button>
+        <button onclick="openChart('${s}')">Chart</button>
       </div>
     `;
   }
@@ -126,9 +91,7 @@ function renderMarket() {
   document.getElementById("market").innerHTML = html;
 }
 
-/* =========================
-   MARKET ENGINE + CANDLES
-========================= */
+/* ================= PRICE ENGINE ================= */
 function updatePrices() {
   for (let s in prices) {
     let open = prices[s];
@@ -145,16 +108,15 @@ function updatePrices() {
       low: Math.min(open, close) * 0.99
     });
 
-    if (history[s].length > 60) history[s].shift();
+    if (history[s].length > 80) history[s].shift();
   }
 
   renderMarket();
   updateBalance();
+  updatePortfolio();
 }
 
-/* =========================
-   BUY / SELL
-========================= */
+/* ================= BUY ================= */
 function buy(stock) {
   if (balance < prices[stock]) return alert("Not enough money");
 
@@ -164,15 +126,13 @@ function buy(stock) {
   save();
 }
 
+/* ================= SELL ================= */
 function sell(stock) {
   if (!portfolio[stock]) return alert("No shares");
 
   let value = portfolio[stock] * prices[stock];
 
-  let ok = confirm(
-    `Sell ${portfolio[stock]} ${stock}?\nYou receive: $${value.toFixed(2)}`
-  );
-
+  let ok = confirm(`Sell ${portfolio[stock]} ${stock} for $${value.toFixed(2)}?`);
   if (!ok) return;
 
   balance += value;
@@ -181,34 +141,63 @@ function sell(stock) {
   save();
 }
 
-/* =========================
-   BALANCE
-========================= */
-function updateBalance() {
+/* ================= PORTFOLIO FIX (REAL VALUE) ================= */
+function updatePortfolio() {
+  let total = 0;
+  let html = "";
+
+  for (let s in portfolio) {
+    let value = portfolio[s] * prices[s];
+    total += value;
+
+    html += `${s}: ${portfolio[s]} ($${value.toFixed(2)})<br>`;
+  }
+
+  document.getElementById("portfolio").innerHTML =
+    html || "No holdings";
+
   document.getElementById("balance").innerText =
-    "Balance: $" + balance.toFixed(2);
+    "Balance: $" + balance.toFixed(2) +
+    " | Portfolio: $" + total.toFixed(2);
 }
 
-/* =========================
-   CANDLESTICK CHART (FULL)
-========================= */
-function viewChart(stock) {
-  let old = document.getElementById("chart");
-  if (old) old.remove();
+/* ================= CHART MODAL ================= */
+function openChart(stock) {
+  let overlay = document.createElement("div");
+  overlay.id = "chartOverlay";
 
-  let canvas = document.createElement("canvas");
-  canvas.id = "chart";
-  canvas.width = 600;
-  canvas.height = 300;
-  canvas.style.display = "block";
-  canvas.style.margin = "20px";
+  overlay.innerHTML = `
+    <div id="chartBox">
+      <div id="chartHeader">
+        <span>${stock} Chart</span>
+        <button onclick="closeChart()">X</button>
+      </div>
+      <canvas id="chartCanvas" width="700" height="350"></canvas>
+    </div>
+  `;
 
-  document.body.appendChild(canvas);
+  document.body.appendChild(overlay);
 
+  drawChart(stock);
+}
+
+function closeChart() {
+  document.getElementById("chartOverlay").remove();
+}
+
+/* ================= FIXED CANDLESTICK CHART ================= */
+function drawChart(stock) {
+  let canvas = document.getElementById("chartCanvas");
   let ctx = canvas.getContext("2d");
-  let data = history[stock];
 
-  if (!data.length) return alert("No chart data yet");
+  let data = history[stock];
+  if (!data.length) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  let max = Math.max(...data.map(d => d.high));
+  let min = Math.min(...data.map(d => d.low));
+  let range = max - min;
 
   let w = canvas.width / data.length;
 
@@ -217,19 +206,19 @@ function viewChart(stock) {
 
     let x = i * w;
 
-    let openY = canvas.height - c.open / 2;
-    let closeY = canvas.height - c.close / 2;
-    let highY = canvas.height - c.high / 2;
-    let lowY = canvas.height - c.low / 2;
+    let scale = (v) => canvas.height - ((v - min) / range) * canvas.height;
 
-    /* wick */
-    ctx.strokeStyle = "white";
+    let openY = scale(c.open);
+    let closeY = scale(c.close);
+    let highY = scale(c.high);
+    let lowY = scale(c.low);
+
+    ctx.strokeStyle = "#fff";
     ctx.beginPath();
     ctx.moveTo(x + w / 2, highY);
     ctx.lineTo(x + w / 2, lowY);
     ctx.stroke();
 
-    /* body */
     ctx.fillStyle = c.close > c.open ? "#22c55e" : "#ef4444";
 
     ctx.fillRect(
