@@ -1,4 +1,6 @@
-let balance = Number(localStorage.getItem("balance")) || 100;
+let balance = Number(localStorage.getItem("balance"));
+if (!balance) balance = 100;
+
 let username = localStorage.getItem("username") || "";
 let portfolio = JSON.parse(localStorage.getItem("portfolio") || "{}");
 
@@ -11,7 +13,6 @@ let prices = {
   GOLD: 2000, BTC: 45000
 };
 
-/* ================= HISTORY ================= */
 let history = {};
 for (let s in prices) history[s] = [];
 
@@ -21,6 +22,15 @@ function save() {
   localStorage.setItem("username", username);
   localStorage.setItem("portfolio", JSON.stringify(portfolio));
 }
+
+/* ================= INIT UI (IMPORTANT FIX) ================= */
+window.onload = function () {
+  if (document.getElementById("balance")) {
+    document.getElementById("balance").innerText = "Balance: $" + balance.toFixed(2);
+  }
+  renderMarket();
+  updatePortfolio();
+};
 
 /* ================= START ================= */
 function startApp() {
@@ -37,13 +47,12 @@ function startApp() {
 
 /* ================= TUTORIAL ================= */
 let tutorial = [
-  "Welcome to Trade Terminal Pro",
+  "Welcome to Trading Simulator",
   "You start with $100",
+  "Stocks move every few seconds",
   "Buy low, sell high",
-  "Each stock moves differently",
-  "Charts show real candlestick data",
-  "Click stock → view full chart popup",
-  "Close chart anytime with X",
+  "Your portfolio updates live",
+  "Charts show candlesticks",
   "Now start trading"
 ];
 
@@ -67,11 +76,12 @@ function finishTutorial() {
 
   renderMarket();
   updateBalance();
+  updatePortfolio();
 
   setInterval(updatePrices, 2000);
 }
 
-/* ================= MARKET ================= */
+/* ================= MARKET RENDER ================= */
 function renderMarket() {
   let html = "";
 
@@ -91,12 +101,12 @@ function renderMarket() {
   document.getElementById("market").innerHTML = html;
 }
 
-/* ================= PRICE ENGINE ================= */
+/* ================= PRICE MOVEMENT (FIXED) ================= */
 function updatePrices() {
   for (let s in prices) {
     let open = prices[s];
 
-    let change = (Math.random() - 0.5) * (prices[s] * 0.02);
+    let change = (Math.random() - 0.5) * (prices[s] * 0.03);
     let close = Math.max(1, open + change);
 
     prices[s] = close;
@@ -104,8 +114,8 @@ function updatePrices() {
     history[s].push({
       open,
       close,
-      high: Math.max(open, close) * 1.01,
-      low: Math.min(open, close) * 0.99
+      high: Math.max(open, close),
+      low: Math.min(open, close)
     });
 
     if (history[s].length > 80) history[s].shift();
@@ -124,11 +134,14 @@ function buy(stock) {
   portfolio[stock] = (portfolio[stock] || 0) + 1;
 
   save();
+
+  updateBalance();
+  updatePortfolio();
 }
 
 /* ================= SELL ================= */
 function sell(stock) {
-  if (!portfolio[stock]) return alert("No shares");
+  if (!portfolio[stock]) return alert("Nothing to sell");
 
   let value = portfolio[stock] * prices[stock];
 
@@ -139,12 +152,21 @@ function sell(stock) {
   portfolio[stock] = 0;
 
   save();
+
+  updateBalance();
+  updatePortfolio();
 }
 
-/* ================= PORTFOLIO FIX (REAL VALUE) ================= */
+/* ================= BALANCE FIX ================= */
+function updateBalance() {
+  document.getElementById("balance").innerText =
+    "Balance: $" + balance.toFixed(2);
+}
+
+/* ================= PORTFOLIO FIX ================= */
 function updatePortfolio() {
-  let total = 0;
   let html = "";
+  let total = 0;
 
   for (let s in portfolio) {
     let value = portfolio[s] * prices[s];
@@ -157,43 +179,22 @@ function updatePortfolio() {
     html || "No holdings";
 
   document.getElementById("balance").innerText =
-    "Balance: $" + balance.toFixed(2) +
-    " | Portfolio: $" + total.toFixed(2);
+    "Balance: $" + balance.toFixed(2) + " | Portfolio: $" + total.toFixed(2);
 }
 
-/* ================= CHART MODAL ================= */
+/* ================= SIMPLE CHART FIX ================= */
 function openChart(stock) {
-  let overlay = document.createElement("div");
-  overlay.id = "chartOverlay";
-
-  overlay.innerHTML = `
-    <div id="chartBox">
-      <div id="chartHeader">
-        <span>${stock} Chart</span>
-        <button onclick="closeChart()">X</button>
-      </div>
-      <canvas id="chartCanvas" width="700" height="350"></canvas>
-    </div>
-  `;
-
-  document.body.appendChild(overlay);
-
-  drawChart(stock);
-}
-
-function closeChart() {
-  document.getElementById("chartOverlay").remove();
-}
-
-/* ================= FIXED CANDLESTICK CHART ================= */
-function drawChart(stock) {
-  let canvas = document.getElementById("chartCanvas");
-  let ctx = canvas.getContext("2d");
-
   let data = history[stock];
-  if (!data.length) return;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!data.length) return alert("No data yet");
+
+  let canvas = document.createElement("canvas");
+  canvas.width = 500;
+  canvas.height = 250;
+
+  document.body.appendChild(canvas);
+
+  let ctx = canvas.getContext("2d");
 
   let max = Math.max(...data.map(d => d.high));
   let min = Math.min(...data.map(d => d.low));
@@ -206,26 +207,20 @@ function drawChart(stock) {
 
     let x = i * w;
 
-    let scale = (v) => canvas.height - ((v - min) / range) * canvas.height;
+    let scale = v => canvas.height - ((v - min) / range) * canvas.height;
 
-    let openY = scale(c.open);
-    let closeY = scale(c.close);
-    let highY = scale(c.high);
-    let lowY = scale(c.low);
+    let o = scale(c.open);
+    let cl = scale(c.close);
+    let h = scale(c.high);
+    let l = scale(c.low);
 
     ctx.strokeStyle = "#fff";
     ctx.beginPath();
-    ctx.moveTo(x + w / 2, highY);
-    ctx.lineTo(x + w / 2, lowY);
+    ctx.moveTo(x + w / 2, h);
+    ctx.lineTo(x + w / 2, l);
     ctx.stroke();
 
-    ctx.fillStyle = c.close > c.open ? "#22c55e" : "#ef4444";
-
-    ctx.fillRect(
-      x,
-      Math.min(openY, closeY),
-      w * 0.8,
-      Math.abs(openY - closeY)
-    );
+    ctx.fillStyle = c.close > c.open ? "green" : "red";
+    ctx.fillRect(x, Math.min(o, cl), w * 0.8, Math.abs(o - cl));
   }
 }
