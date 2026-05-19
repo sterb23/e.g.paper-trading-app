@@ -3,49 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeLearn App</title>
+<title>TradeLearn Pro</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="loginScreen" class="screen">
-  <h1>TradeLearn</h1>
-  <p>Enter a username to start (saved forever)</p>
+  <h1>TradeLearn Pro</h1>
 
-  <input id="usernameInput" placeholder="Username">
+  <input id="usernameInput" placeholder="Enter username">
   <button onclick="startApp()">Start</button>
+</div>
+
+<!-- TUTORIAL (FORCED) -->
+<div id="tutorialScreen" class="screen hidden">
+  <h2>Tutorial</h2>
+  <p id="tutorialText"></p>
+
+  <button onclick="nextTutorial()">Next</button>
 </div>
 
 <!-- APP -->
 <div id="app" class="hidden">
 
   <div class="topbar">
-    <h2 id="welcome"></h2>
-    <div id="balance">Balance: $100</div>
+    <div id="welcome"></div>
+    <div id="balance"></div>
   </div>
 
   <div class="container">
 
-    <h3>Market</h3>
-
+    <h3>📈 Market</h3>
     <div id="market"></div>
 
-    <h3>Your Portfolio</h3>
+    <h3>💼 Portfolio</h3>
     <div id="portfolio"></div>
 
-    <button onclick="openTutorial()">📚 Tutorial</button>
+    <h3>📊 Portfolio Value Chart</h3>
+    <canvas id="chart" width="300" height="150"></canvas>
 
   </div>
-</div>
 
-<!-- TUTORIAL -->
-<div id="tutorial" class="hidden screen">
-  <h2 id="tTitle">Tutorial</h2>
-  <p id="tText"></p>
-
-  <button onclick="nextStep()">Next ➜</button>
-  <button onclick="closeTutorial()">Exit</button>
 </div>
 
 <script src="script.js"></script>
