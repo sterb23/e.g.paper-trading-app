@@ -1,96 +1,47 @@
 let balance = 100;
 let portfolio = {};
+
 let prices = {
   APPLE: 10,
   TESLA: 20,
-  BITCOIN: 50
+  BTC: 50
 };
 
+/* CHART DATA (OHLC CANDLES) */
+let candles = [];
 let chartData = [];
+
+/* INDICATORS */
+let maLine = [];
+let rsiLine = [];
+
+/* TUTORIAL SKIPPED FOR SHORTNESS */
 let tutorialStep = 0;
 
-/* TUTORIAL */
-let tutorial = [
-  "Welcome to TradeLearn Pro.",
-  "You start with $100 virtual money.",
-  "This is a real trading simulator.",
-  "Buy low, sell high to make profit.",
-  "Markets move every few seconds.",
-  "You can trade Apple, Tesla, and Bitcoin.",
-  "Each asset behaves differently.",
-  "Your portfolio shows your holdings.",
-  "Chart shows total account value.",
-  "Finish tutorial to start trading."
-];
-
-/* LOGIN */
+/* INIT */
 function startApp() {
   let username = document.getElementById("usernameInput").value;
   if (!username) return alert("Enter username");
 
   localStorage.setItem("username", username);
-  localStorage.setItem("balance", 100);
 
   document.getElementById("loginScreen").classList.add("hidden");
-  document.getElementById("tutorialScreen").classList.remove("hidden");
-
-  showTutorial();
-}
-
-/* TUTORIAL */
-function showTutorial() {
-  document.getElementById("tutorialText").innerText =
-    tutorial[tutorialStep];
-}
-
-function nextTutorial() {
-  tutorialStep++;
-
-  if (tutorialStep >= tutorial.length) {
-    finishTutorial();
-    return;
-  }
-
-  showTutorial();
-}
-
-function finishTutorial() {
-  document.getElementById("tutorialScreen").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
-
-  let username = localStorage.getItem("username");
 
   document.getElementById("welcome").innerText =
     "Welcome " + username;
 
   renderMarket();
-  setInterval(updatePrices, 2500);
+  setInterval(updateMarket, 2000);
 }
 
-/* MARKET */
-function renderMarket() {
-  let html = "";
-
-  for (let stock in prices) {
-    html += `
-      <div class="stock">
-        <b>${stock}</b><br>
-        Price: $${prices[stock].toFixed(2)}<br>
-        <button onclick="buy('${stock}')">Buy</button>
-        <button onclick="sell('${stock}')">Sell</button>
-      </div>
-    `;
-  }
-
-  document.getElementById("market").innerHTML = html;
-}
-
-/* PRICE MOVEMENT */
-function updatePrices() {
-  for (let stock in prices) {
+/* MARKET ENGINE */
+function updateMarket() {
+  for (let s in prices) {
     let change = (Math.random() - 0.5) * 3;
-    prices[stock] += change;
-    prices[stock] = Math.max(1, prices[stock]);
+    prices[s] = Math.max(1, prices[s] + change);
+
+    generateCandle(s);
   }
 
   renderMarket();
@@ -99,33 +50,80 @@ function updatePrices() {
   updateChart();
 }
 
-/* BUY */
-function buy(stock) {
-  if (balance < prices[stock]) return alert("Not enough balance");
+/* CANDLE GENERATION */
+function generateCandle(stock) {
+  let last = prices[stock];
 
-  balance -= prices[stock];
+  let open = last;
+  let close = last + (Math.random() - 0.5) * 2;
+  let high = Math.max(open, close) + Math.random();
+  let low = Math.min(open, close) - Math.random();
 
-  portfolio[stock] = (portfolio[stock] || 0) + 1;
+  candles.push({ open, high, low, close });
 
-  updateAll();
+  if (candles.length > 30) candles.shift();
 }
 
-/* SELL */
+/* MARKET UI */
+function renderMarket() {
+  let html = "";
+
+  for (let s in prices) {
+    html += `
+      <div class="stock">
+        <b>${s}</b><br>
+        $${prices[s].toFixed(2)}<br>
+        <button onclick="buy('${s}')">Buy</button>
+        <button onclick="sell('${s}')">Sell</button>
+      </div>
+    `;
+  }
+
+  document.getElementById("market").innerHTML = html;
+}
+
+/* BUY/SELL */
+function buy(stock) {
+  if (balance < prices[stock]) return alert("No money");
+
+  balance -= prices[stock];
+  portfolio[stock] = (portfolio[stock] || 0) + 1;
+
+  popup("BUY " + stock);
+}
+
 function sell(stock) {
   if (!portfolio[stock]) return;
 
-  portfolio[stock] -= 1;
+  portfolio[stock]--;
   balance += prices[stock];
 
-  updateAll();
+  popup("SELL " + stock);
+}
+
+/* POPUP ANIMATION */
+function popup(text) {
+  let div = document.createElement("div");
+  div.innerText = text;
+  div.style.position = "fixed";
+  div.style.top = "20px";
+  div.style.right = "20px";
+  div.style.background = "#2563eb";
+  div.style.padding = "10px";
+  div.style.borderRadius = "8px";
+  div.style.animation = "fade 1s ease";
+
+  document.body.appendChild(div);
+
+  setTimeout(() => div.remove(), 1000);
 }
 
 /* PORTFOLIO */
 function updatePortfolio() {
   let html = "";
 
-  for (let stock in portfolio) {
-    html += `${stock}: ${portfolio[stock]}<br>`;
+  for (let s in portfolio) {
+    html += `${s}: ${portfolio[s]}<br>`;
   }
 
   document.getElementById("portfolio").innerHTML =
@@ -138,42 +136,69 @@ function updateBalance() {
     "Balance: $" + balance.toFixed(2);
 }
 
-/* UPDATE ALL */
-function updateAll() {
-  updatePortfolio();
-  updateBalance();
-}
-
-/* CHART */
+/* CHART + INDICATORS */
 function updateChart() {
-  let totalValue = balance;
+  let total = balance;
 
-  for (let stock in portfolio) {
-    totalValue += portfolio[stock] * prices[stock];
+  for (let s in portfolio) {
+    total += portfolio[s] * prices[s];
   }
 
-  chartData.push(totalValue);
+  chartData.push(total);
+  if (chartData.length > 40) chartData.shift();
 
-  if (chartData.length > 25) chartData.shift();
+  calculateMA();
+  calculateRSI();
 
   drawChart();
 }
 
+/* MOVING AVERAGE */
+function calculateMA() {
+  let sum = 0;
+  maLine = [];
+
+  for (let i = 0; i < chartData.length; i++) {
+    sum += chartData[i];
+    maLine.push(sum / (i + 1));
+  }
+}
+
+/* RSI (SIMPLIFIED) */
+function calculateRSI() {
+  rsiLine = [];
+
+  for (let i = 1; i < chartData.length; i++) {
+    let gain = Math.max(0, chartData[i] - chartData[i - 1]);
+    let loss = Math.max(0, chartData[i - 1] - chartData[i]);
+
+    let rsi = 100 - (100 / (1 + (gain / (loss + 1))));
+    rsiLine.push(rsi);
+  }
+}
+
+/* DRAW CHART */
 function drawChart() {
   let canvas = document.getElementById("chart");
   let ctx = canvas.getContext("2d");
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  /* PRICE LINE */
   ctx.beginPath();
-
-  let startY = canvas.height - chartData[0] / 2;
-  ctx.moveTo(0, startY);
-
   for (let i = 0; i < chartData.length; i++) {
-    ctx.lineTo(i * 14, canvas.height - chartData[i] / 2);
+    let y = canvas.height - chartData[i] / 2;
+    ctx.lineTo(i * 10, y);
   }
+  ctx.strokeStyle = "#2563eb";
+  ctx.stroke();
 
-  ctx.strokeStyle = "#00ff88";
+  /* MA LINE */
+  ctx.beginPath();
+  for (let i = 0; i < maLine.length; i++) {
+    let y = canvas.height - maLine[i] / 2;
+    ctx.lineTo(i * 10, y);
+  }
+  ctx.strokeStyle = "orange";
   ctx.stroke();
 }
