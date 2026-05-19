@@ -43,7 +43,7 @@ window.onload = () => {
   if(session.loggedIn) enterApp();
   else document.getElementById("loginScreen").classList.remove("hidden");
 
-  setInterval(updateMarket, 1100);
+  setInterval(updateMarket, 1000);
 };
 
 /* ================= LOGIN ================= */
@@ -64,9 +64,9 @@ function startApp(){
 /* ================= TUTORIAL ================= */
 let tutorial = [
   "Welcome to Trading Terminal V8.1",
-  "Swipe charts left/right to view time",
-  "Buy low, sell high",
-  "Portfolio is saved automatically",
+  "Charts are swipeable",
+  "Portfolio saves automatically",
+  "Tap X to close charts safely",
   "Let’s trade"
 ];
 
@@ -102,6 +102,26 @@ function enterApp(){
   updateUI();
 }
 
+/* ================= MARKET ================= */
+function renderMarket(){
+  let html = "";
+
+  for(let a in assets){
+    html += `
+      <div class="asset">
+        <b>${a}</b><br>
+        $${assets[a].p.toFixed(2)}<br>
+
+        <button onclick="buy('${a}')">Buy</button>
+        <button onclick="sell('${a}')">Sell</button>
+        <button onclick="openChart('${a}')">Chart</button>
+      </div>
+    `;
+  }
+
+  document.getElementById("market").innerHTML = html;
+}
+
 /* ================= MARKET ENGINE ================= */
 function updateMarket(){
   for(let a in assets){
@@ -122,26 +142,6 @@ function updateMarket(){
 
   renderMarket();
   updateUI();
-}
-
-/* ================= MARKET UI ================= */
-function renderMarket(){
-  let html = "";
-
-  for(let a in assets){
-    html += `
-      <div class="asset">
-        <b>${a}</b><br>
-        $${assets[a].p.toFixed(2)}<br>
-
-        <button onclick="buy('${a}')">Buy</button>
-        <button onclick="sell('${a}')">Sell</button>
-        <button onclick="openChart('${a}')">Chart</button>
-      </div>
-    `;
-  }
-
-  document.getElementById("market").innerHTML = html;
 }
 
 /* ================= TRADING ================= */
@@ -188,25 +188,33 @@ let viewSize = 60;
 let dragging = false;
 let lastX = 0;
 
-/* ================= OPEN CHART ================= */
+/* ================= OPEN CHART (SAFE) ================= */
 function openChart(a){
   current = a;
 
-  if(!history[a] || history[a].length < 10) return;
+  if(!history[a] || history[a].length < 5){
+    alert("Not enough data yet");
+    return;
+  }
 
   viewStart = Math.max(0, history[a].length - viewSize);
 
-  document.getElementById("chartModal").classList.remove("hidden");
+  let modal = document.getElementById("chartModal");
+  modal.classList.remove("hidden");
 
   setupSwipe();
   drawChart();
 }
 
+/* ================= SAFE CLOSE (FIXED BUG) ================= */
 function closeChart(){
-  document.getElementById("chartModal").classList.add("hidden");
+  let modal = document.getElementById("chartModal");
+  if(modal) modal.classList.add("hidden");
+
+  dragging = false;
 }
 
-/* ================= SWIPE SYSTEM ================= */
+/* ================= SWIPE ================= */
 function setupSwipe(){
   const c = document.getElementById("chartCanvas");
 
@@ -246,7 +254,7 @@ function move(x){
   drawChart();
 }
 
-/* ================= CANDLE CHART ================= */
+/* ================= CHART DRAW ================= */
 function drawChart(){
   const c = document.getElementById("chartCanvas");
   const ctx = c.getContext("2d");
