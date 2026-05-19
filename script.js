@@ -8,72 +8,84 @@ let session = JSON.parse(localStorage.getItem("session")) || {
 let balance = Number(localStorage.getItem("balance")) || 100;
 let portfolio = JSON.parse(localStorage.getItem("portfolio") || "{}");
 
-/* ================= MARKET ================= */
-let prices = {
-  AAPL: 180, TSLA: 250, MSFT: 420,
-  AMZN: 3200, GOOG: 2800, META: 500,
-  NVDA: 900, NFLX: 600, AMD: 150,
-  BTC: 42000
+/* ================= 30+ ASSETS ================= */
+let assets = {
+  AAPL:{p:180,v:0.012}, TSLA:{p:250,v:0.02}, MSFT:{p:420,v:0.01},
+  AMZN:{p:3200,v:0.015}, GOOG:{p:2800,v:0.012}, META:{p:500,v:0.018},
+  NVDA:{p:900,v:0.025}, NFLX:{p:600,v:0.02}, AMD:{p:150,v:0.03},
+  IBM:{p:140,v:0.01}, ORCL:{p:120,v:0.015}, DIS:{p:110,v:0.02},
+  KO:{p:60,v:0.008}, PEP:{p:170,v:0.009}, BA:{p:220,v:0.02},
+
+  BTC:{p:42000,v:0.04}, ETH:{p:2200,v:0.05}, SOL:{p:120,v:0.06},
+  XRP:{p:0.6,v:0.07},
+
+  SPX:{p:4800,v:0.01}, NASDAQ:{p:17000,v:0.012},
+
+  GOLD:{p:2000,v:0.008}, OIL:{p:75,v:0.03}, SILVER:{p:25,v:0.02},
+
+  EURUSD:{p:1.09,v:0.001}, GBPUSD:{p:1.27,v:0.0015},
+
+  TSMC:{p:100,v:0.02}, SHOP:{p:70,v:0.03},
+  SNAP:{p:12,v:0.04}, UBER:{p:60,v:0.02}
 };
 
+/* ================= HISTORY ================= */
 let history = {};
-for (let s in prices) history[s] = [];
+for(let a in assets) history[a] = [];
 
 /* ================= SAVE ================= */
-function save() {
-  localStorage.setItem("session", JSON.stringify(session));
-  localStorage.setItem("balance", balance);
-  localStorage.setItem("portfolio", JSON.stringify(portfolio));
+function save(){
+  localStorage.setItem("session",JSON.stringify(session));
+  localStorage.setItem("balance",balance);
+  localStorage.setItem("portfolio",JSON.stringify(portfolio));
 }
 
 /* ================= INIT ================= */
 window.onload = () => {
-  if (session.loggedIn) enterApp();
+  if(session.loggedIn) enterApp();
   else document.getElementById("loginScreen").classList.remove("hidden");
 
-  setInterval(updatePrices, 1200);
+  setInterval(updateMarket, 1000);
 };
 
 /* ================= LOGIN ================= */
-function startApp() {
+function startApp(){
   let name = document.getElementById("usernameInput").value;
-  if (!name) return;
+  if(!name) return;
 
   session.username = name;
   session.loggedIn = true;
-
   save();
 
   document.getElementById("loginScreen").classList.add("hidden");
 
-  if (!session.tutorialDone) startTutorial();
+  if(!session.tutorialDone) tutorialStart();
   else enterApp();
 }
 
 /* ================= TUTORIAL ================= */
 let tutorial = [
-  "Welcome to Broker Terminal V6",
-  "Charts now behave like real trading tools",
-  "You can zoom + drag charts",
-  "Crosshair shows price levels",
+  "Welcome to V8 Trading Terminal",
+  "Swipe charts to move through time",
+  "Real candlestick data engine",
   "Let’s trade"
 ];
 
 let step = 0;
 
-function startTutorial() {
+function tutorialStart(){
   document.getElementById("tutorialScreen").classList.remove("hidden");
   showTutorial();
 }
 
-function showTutorial() {
+function showTutorial(){
   document.getElementById("tutorialText").innerText = tutorial[step];
 }
 
-function nextTutorial() {
+function nextTutorial(){
   step++;
-  if (step >= tutorial.length) {
-    session.tutorialDone = true;
+  if(step>=tutorial.length){
+    session.tutorialDone=true;
     save();
     document.getElementById("tutorialScreen").classList.add("hidden");
     enterApp();
@@ -83,7 +95,7 @@ function nextTutorial() {
 }
 
 /* ================= APP ================= */
-function enterApp() {
+function enterApp(){
   document.getElementById("app").classList.remove("hidden");
   document.getElementById("welcome").innerText = session.username;
 
@@ -91,214 +103,168 @@ function enterApp() {
   updateUI();
 }
 
-/* ================= LOGOUT ================= */
-function logout() {
-  session.loggedIn = false;
-  session.username = "";
-  save();
-  location.reload();
-}
-
 /* ================= MARKET ================= */
-function renderMarket() {
-  let html = "";
+function renderMarket(){
+  let html="";
 
-  for (let s in prices) {
-    html += `
-      <div class="stock">
-        <b>${s}</b><br>
-        $${prices[s].toFixed(2)}<br>
-
-        <button onclick="buy('${s}')">Buy</button>
-        <button onclick="sell('${s}')">Sell</button>
-        <button onclick="openChart('${s}')">Chart</button>
+  for(let a in assets){
+    html+=`
+      <div class="asset">
+        <b>${a}</b><br>
+        $${assets[a].p.toFixed(2)}<br>
+        <button onclick="buy('${a}')">Buy</button>
+        <button onclick="sell('${a}')">Sell</button>
+        <button onclick="openChart('${a}')">Chart</button>
       </div>
     `;
   }
 
-  document.getElementById("market").innerHTML = html;
+  document.getElementById("market").innerHTML=html;
 }
 
-/* ================= PRICE ENGINE ================= */
-function updatePrices() {
-  for (let s in prices) {
-    let open = prices[s];
-    let change = (Math.random() - 0.5) * open * 0.012;
-    let close = Math.max(1, open + change);
+/* ================= MARKET ENGINE ================= */
+function updateMarket(){
+  for(let a in assets){
+    let o=assets[a];
 
-    prices[s] = close;
+    let change=(Math.random()-0.5)*o.p*o.v;
+    let c=Math.max(0.01,o.p+change);
 
-    history[s].push({
-      open,
-      close,
-      high: Math.max(open, close),
-      low: Math.min(open, close)
-    });
+    o.p=c;
 
-    if (history[s].length > 300) history[s].shift();
+    let h=c+Math.random()*o.v*o.p;
+    let l=c-Math.random()*o.v*o.p;
+
+    history[a].push({o:o.p,c,h,l});
+    if(history[a].length>200) history[a].shift();
   }
 
   renderMarket();
   updateUI();
 }
 
-/* ================= TRADE ================= */
-function buy(s) {
-  if (balance < prices[s]) return;
-  balance -= prices[s];
-  portfolio[s] = (portfolio[s] || 0) + 1;
+/* ================= TRADING ================= */
+function buy(a){
+  if(balance<assets[a].p)return;
+  balance-=assets[a].p;
+  portfolio[a]=(portfolio[a]||0)+1;
   save();
   updateUI();
 }
 
-function sell(s) {
-  if (!portfolio[s]) return;
-  balance += prices[s] * portfolio[s];
-  portfolio[s] = 0;
+function sell(a){
+  if(!portfolio[a])return;
+  balance+=assets[a].p*portfolio[a];
+  portfolio[a]=0;
   save();
   updateUI();
 }
 
 /* ================= UI ================= */
-function updateUI() {
-  document.getElementById("balance").innerText =
-    "Balance: $" + balance.toFixed(2);
+function updateUI(){
+  document.getElementById("balance").innerText=balance.toFixed(2);
 
-  let html = "";
-  for (let s in portfolio) {
-    html += `${s}: ${portfolio[s]}<br>`;
+  let html="";
+  let total=0;
+
+  for(let a in portfolio){
+    let val=portfolio[a]*assets[a].p;
+    total+=val;
+    html+=`${a}: ${portfolio[a]} ($${val.toFixed(2)})<br>`;
   }
 
-  document.getElementById("portfolio").innerHTML =
-    html || "No holdings";
+  document.getElementById("portfolio").innerHTML=html||"No holdings";
+  document.getElementById("pnl").innerHTML="Portfolio: $"+total.toFixed(2);
 }
 
-/* ================= CHART SYSTEM ================= */
-let currentStock = null;
-let zoom = 1;
-let offsetX = 0;
-let dragging = false;
-let lastX = 0;
+/* ================= CHART ================= */
+let current=null;
+let start=0;
+let size=60;
+let dragging=false;
+let lastX=0;
 
-function openChart(stock) {
-  currentStock = stock;
+function openChart(a){
+  current=a;
+  start=Math.max(0,history[a].length-size);
   document.getElementById("chartModal").classList.remove("hidden");
-  document.getElementById("chartTitle").innerText = stock;
 
-  setupChart();
+  setupSwipe();
   drawChart();
 }
 
-function closeChart() {
+function closeChart(){
   document.getElementById("chartModal").classList.add("hidden");
 }
 
-/* ================= INTERACTIONS ================= */
-function setupChart() {
-  let canvas = document.getElementById("chartCanvas");
+/* ================= SWIPE ================= */
+function setupSwipe(){
+  let c=document.getElementById("chartCanvas");
 
-  canvas.onmousedown = e => {
-    dragging = true;
-    lastX = e.clientX;
-  };
+  c.onmousedown=e=>{dragging=true;lastX=e.clientX;}
+  c.onmouseup=()=>dragging=false;
+  c.onmouseleave=()=>dragging=false;
 
-  canvas.onmouseup = () => dragging = false;
-  canvas.onmouseleave = () => dragging = false;
+  c.ontouchstart=e=>{dragging=true;lastX=e.touches[0].clientX;}
+  c.ontouchend=()=>dragging=false;
 
-  canvas.onmousemove = e => {
-    if (dragging) {
-      offsetX += e.clientX - lastX;
-      lastX = e.clientX;
-      drawChart();
-    } else {
-      drawChart(e);
-    }
-  };
-
-  canvas.onwheel = e => {
-    e.preventDefault();
-    zoom += e.deltaY < 0 ? 0.1 : -0.1;
-    zoom = Math.max(0.4, Math.min(6, zoom));
-    drawChart();
-  };
+  c.onmousemove=e=>move(e.clientX);
+  c.ontouchmove=e=>move(e.touches[0].clientX);
 }
 
-/* ================= V6 CHART ENGINE ================= */
-function drawChart(mouseEvent) {
-  let canvas = document.getElementById("chartCanvas");
-  let ctx = canvas.getContext("2d");
+function move(x){
+  if(!dragging)return;
 
-  let data = history[currentStock];
-  if (!data || data.length < 20) return;
+  let dx=x-lastX;
+  lastX=x;
 
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
+  start-=dx*0.2;
+  start=Math.max(0,start);
+  let max=Math.max(0,history[current].length-size);
+  if(start>max)start=max;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawChart();
+}
 
-  let max = Math.max(...data.map(d => d.high));
-  let min = Math.min(...data.map(d => d.low));
-  let range = max - min || 1;
+/* ================= DRAW CANDLES ================= */
+function drawChart(){
+  let c=document.getElementById("chartCanvas");
+  let ctx=c.getContext("2d");
 
-  let candleW = (canvas.width / data.length) * zoom;
+  let data=history[current];
+  if(!data||data.length<2)return;
 
-  let mouseX = 0;
-  let mouseY = 0;
+  c.width=c.clientWidth;
+  c.height=c.clientHeight;
 
-  if (mouseEvent) {
-    let rect = canvas.getBoundingClientRect();
-    mouseX = mouseEvent.clientX - rect.left;
-    mouseY = mouseEvent.clientY - rect.top;
-  }
+  ctx.clearRect(0,0,c.width,c.height);
 
-  for (let i = 0; i < data.length; i++) {
-    let d = data[i];
+  let vis=data.slice(start,start+size);
 
-    let x = i * candleW + offsetX;
+  let min=Math.min(...vis.map(d=>d.l));
+  let max=Math.max(...vis.map(d=>d.h));
+  let range=max-min||1;
 
-    if (x < -100 || x > canvas.width + 100) continue;
+  let w=c.width/size;
 
-    let o = canvas.height - ((d.open - min) / range) * canvas.height;
-    let c = canvas.height - ((d.close - min) / range) * canvas.height;
-    let h = canvas.height - ((d.high - min) / range) * canvas.height;
-    let l = canvas.height - ((d.low - min) / range) * canvas.height;
+  for(let i=0;i<vis.length;i++){
+    let d=vis[i];
 
-    ctx.strokeStyle = "#9ca3af";
+    let x=i*w;
+
+    let o=c.height-((d.o-min)/range)*c.height;
+    let cl=c.height-((d.c-min)/range)*c.height;
+    let h=c.height-((d.h-min)/range)*c.height;
+    let l=c.height-((d.l-min)/range)*c.height;
+
+    ctx.strokeStyle="#999";
     ctx.beginPath();
-    ctx.moveTo(x + candleW / 2, h);
-    ctx.lineTo(x + candleW / 2, l);
+    ctx.moveTo(x+w/2,h);
+    ctx.lineTo(x+w/2,l);
     ctx.stroke();
 
-    ctx.fillStyle = d.close > d.open ? "#22c55e" : "#ef4444";
+    ctx.fillStyle=d.c>d.o?"#22c55e":"#ef4444";
 
-    ctx.fillRect(
-      x,
-      Math.min(o, c),
-      candleW * 0.7,
-      Math.abs(o - c)
-    );
-  }
-
-  /* CROSSHAIR */
-  if (mouseEvent) {
-    ctx.strokeStyle = "rgba(59,130,246,0.6)";
-    ctx.setLineDash([5, 5]);
-
-    ctx.beginPath();
-    ctx.moveTo(mouseX, 0);
-    ctx.lineTo(mouseX, canvas.height);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(0, mouseY);
-    ctx.lineTo(canvas.width, mouseY);
-    ctx.stroke();
-
-    ctx.setLineDash([]);
-
-    let price = max - (mouseY / canvas.height) * range;
-
-    ctx.fillStyle = "#3b82f6";
-    ctx.fillText(price.toFixed(2), mouseX + 8, mouseY - 8);
+    ctx.fillRect(x,Math.min(o,cl),w*0.7,Math.abs(o-cl));
   }
 }
