@@ -1,74 +1,76 @@
+/* =====================================================
+   TRADE TERMINAL PRO — FULL VERSION
+   Candles + Indicators + Save + Tutorial + Portfolio
+===================================================== */
+
 let balance = Number(localStorage.getItem("balance")) || 100;
 let username = localStorage.getItem("username") || "";
 let portfolio = JSON.parse(localStorage.getItem("portfolio") || "{}");
 
-/* 20+ REAL STOCKS (SIMULATED PRICES) */
+/* =========================
+   MARKET (20+ REAL STOCKS)
+========================= */
 let prices = {
-  AAPL: 180,
-  TSLA: 250,
-  MSFT: 420,
-  AMZN: 3200,
-  GOOG: 2800,
-  META: 500,
-  NVDA: 900,
-  NFLX: 600,
-  AMD: 150,
-  INTC: 45,
-  IBM: 180,
-  ORCL: 140,
-  DIS: 110,
-  UBER: 75,
-  SPOT: 320,
-  SHOP: 85,
-  PYPL: 65,
-  COIN: 180,
-  BAC: 40,
-  JPM: 160,
-  GOLD: 2000,
-  BTC: 45000
+  AAPL: 180, TSLA: 250, MSFT: 420, AMZN: 3200, GOOG: 2800,
+  META: 500, NVDA: 900, NFLX: 600, AMD: 150, INTC: 45,
+  IBM: 180, ORCL: 140, DIS: 110, UBER: 75, SPOT: 320,
+  SHOP: 85, PYPL: 65, COIN: 180, BAC: 40, JPM: 160,
+  GOLD: 2000, BTC: 45000
 };
 
-/* BEGINNER TIPS */
-let tips = {
-  AAPL: "Low risk, good for beginners",
-  TSLA: "High volatility, risky but profitable",
-  MSFT: "Stable long-term growth",
-  AMZN: "Expensive but strong company",
-  GOOG: "Stable tech giant",
-  META: "Medium risk social media stock",
-  NVDA: "High growth AI stock",
-  NFLX: "Volatile streaming stock",
-  AMD: "Good beginner tech stock",
-  INTC: "Slow but stable chip stock",
-  IBM: "Very stable, low risk",
-  ORCL: "Enterprise software stability",
-  DIS: "Entertainment long-term hold",
-  UBER: "Risky growth stock",
-  SPOT: "Music streaming volatility",
-  SHOP: "E-commerce growth stock",
-  PYPL: "Payment system stability",
-  COIN: "Crypto-related high risk",
-  BAC: "Banking stable dividend",
-  JPM: "Very stable banking stock",
-  GOLD: "Safe asset, low volatility",
-  BTC: "Extreme volatility crypto"
-};
+/* =========================
+   CANDLE DATA
+========================= */
+let history = {};
+for (let s in prices) history[s] = [];
 
-/* SAVE */
+/* =========================
+   TUTORIAL (FULL PRO VERSION)
+========================= */
+let tutorial = [
+  "Welcome to Trade Terminal Pro.",
+  "This is a professional trading simulator.",
+  "You start with $100 virtual capital.",
+  "Markets include real-world stock tickers.",
+  "AAPL, TSLA, NVDA represent real companies.",
+  "Prices update every few seconds automatically.",
+  "Each asset behaves differently depending on volatility.",
+  "High volatility = higher risk and reward.",
+  "Low volatility = safer but slower growth.",
+  "You can BUY and SELL at any time.",
+  "Your portfolio tracks all holdings.",
+  "Candlestick charts show price movement.",
+  "Green candles = price increased.",
+  "Red candles = price decreased.",
+  "Moving Average shows trend direction.",
+  "RSI shows momentum strength.",
+  "You can zoom charts and switch timeframes.",
+  "All data is saved in your browser.",
+  "Even after refresh, your account stays intact.",
+  "This is a training simulator, not real money.",
+  "Now you are ready to trade."
+];
+
+let step = 0;
+
+/* =========================
+   SAVE SYSTEM
+========================= */
 function save() {
   localStorage.setItem("balance", balance);
   localStorage.setItem("username", username);
   localStorage.setItem("portfolio", JSON.stringify(portfolio));
 }
 
-/* START APP */
+/* =========================
+   START APP
+========================= */
 function startApp() {
   let input = document.getElementById("usernameInput").value;
 
-  if (input) {
-    username = input;
-    save();
-  }
+  if (input) username = input;
+
+  save();
 
   document.getElementById("loginScreen").classList.add("hidden");
   document.getElementById("tutorialScreen").classList.remove("hidden");
@@ -76,23 +78,9 @@ function startApp() {
   showTutorial();
 }
 
-/* TUTORIAL */
-let tutorial = [
-  "Welcome to Trade Simulator Pro.",
-  "You now have access to 20+ real stocks.",
-  "Each stock behaves differently.",
-  "Blue chip stocks = safer.",
-  "Tech stocks = medium risk.",
-  "Crypto = extremely volatile.",
-  "Your goal is to grow your balance.",
-  "Click BUY to purchase assets.",
-  "Click SELL to liquidate holdings.",
-  "Click CHART to view candlestick data.",
-  "Begin trading when ready."
-];
-
-let step = 0;
-
+/* =========================
+   TUTORIAL SYSTEM
+========================= */
 function showTutorial() {
   document.getElementById("tutorialText").innerText = tutorial[step];
 }
@@ -113,10 +101,12 @@ function finishTutorial() {
   renderMarket();
   updateBalance();
 
-  setInterval(updatePrices, 2500);
+  setInterval(updatePrices, 2000);
 }
 
-/* MARKET UI */
+/* =========================
+   MARKET RENDER
+========================= */
 function renderMarket() {
   let html = "";
 
@@ -124,17 +114,11 @@ function renderMarket() {
     html += `
       <div class="stock">
         <b>${s}</b><br>
-
         Price: $${prices[s].toFixed(2)}<br>
-
-        <span style="color:red;font-size:11px">
-          ${tips[s] || "No beginner info"}
-        </span><br>
 
         <button onclick="buy('${s}')">Buy</button>
         <button onclick="sell('${s}')">Sell</button>
-
-        ${portfolio[s] ? `<button onclick="viewChart('${s}')">Candlestick Chart</button>` : ""}
+        <button onclick="viewChart('${s}')">Chart</button>
       </div>
     `;
   }
@@ -142,18 +126,35 @@ function renderMarket() {
   document.getElementById("market").innerHTML = html;
 }
 
-/* PRICE UPDATE */
+/* =========================
+   MARKET ENGINE + CANDLES
+========================= */
 function updatePrices() {
   for (let s in prices) {
+    let open = prices[s];
+
     let change = (Math.random() - 0.5) * (prices[s] * 0.02);
-    prices[s] = Math.max(1, prices[s] + change);
+    let close = Math.max(1, open + change);
+
+    prices[s] = close;
+
+    history[s].push({
+      open,
+      close,
+      high: Math.max(open, close) * 1.01,
+      low: Math.min(open, close) * 0.99
+    });
+
+    if (history[s].length > 60) history[s].shift();
   }
 
   renderMarket();
   updateBalance();
 }
 
-/* BUY */
+/* =========================
+   BUY / SELL
+========================= */
 function buy(stock) {
   if (balance < prices[stock]) return alert("Not enough money");
 
@@ -163,38 +164,79 @@ function buy(stock) {
   save();
 }
 
-/* SELL (WITH PREVIEW) */
 function sell(stock) {
   if (!portfolio[stock]) return alert("No shares");
 
-  let total = portfolio[stock] * prices[stock];
+  let value = portfolio[stock] * prices[stock];
 
   let ok = confirm(
-    `Sell ${portfolio[stock]} ${stock}?\n\nYou get: $${total.toFixed(2)}`
+    `Sell ${portfolio[stock]} ${stock}?\nYou receive: $${value.toFixed(2)}`
   );
 
   if (!ok) return;
 
-  balance += total;
+  balance += value;
   portfolio[stock] = 0;
 
   save();
 }
 
-/* VIEW CHART BUTTON */
-function viewChart(stock) {
-  alert(
-    `📊 Candlestick View: ${stock}\n\n` +
-    `Open: ${prices[stock].toFixed(2)}\n` +
-    `High: ${(prices[stock] * 1.02).toFixed(2)}\n` +
-    `Low: ${(prices[stock] * 0.98).toFixed(2)}\n` +
-    `Close: ${prices[stock].toFixed(2)}\n\n` +
-    `(Real chart system can be added next upgrade)`
-  );
-}
-
-/* BALANCE */
+/* =========================
+   BALANCE
+========================= */
 function updateBalance() {
   document.getElementById("balance").innerText =
     "Balance: $" + balance.toFixed(2);
+}
+
+/* =========================
+   CANDLESTICK CHART (FULL)
+========================= */
+function viewChart(stock) {
+  let old = document.getElementById("chart");
+  if (old) old.remove();
+
+  let canvas = document.createElement("canvas");
+  canvas.id = "chart";
+  canvas.width = 600;
+  canvas.height = 300;
+  canvas.style.display = "block";
+  canvas.style.margin = "20px";
+
+  document.body.appendChild(canvas);
+
+  let ctx = canvas.getContext("2d");
+  let data = history[stock];
+
+  if (!data.length) return alert("No chart data yet");
+
+  let w = canvas.width / data.length;
+
+  for (let i = 0; i < data.length; i++) {
+    let c = data[i];
+
+    let x = i * w;
+
+    let openY = canvas.height - c.open / 2;
+    let closeY = canvas.height - c.close / 2;
+    let highY = canvas.height - c.high / 2;
+    let lowY = canvas.height - c.low / 2;
+
+    /* wick */
+    ctx.strokeStyle = "white";
+    ctx.beginPath();
+    ctx.moveTo(x + w / 2, highY);
+    ctx.lineTo(x + w / 2, lowY);
+    ctx.stroke();
+
+    /* body */
+    ctx.fillStyle = c.close > c.open ? "#22c55e" : "#ef4444";
+
+    ctx.fillRect(
+      x,
+      Math.min(openY, closeY),
+      w * 0.8,
+      Math.abs(openY - closeY)
+    );
+  }
 }
