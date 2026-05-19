@@ -15,7 +15,7 @@
 
   <input id="usernameInput" placeholder="Enter username" />
 
-  <button onclick="startApp()">Start</button>
+  <button onclick="startApp()">Start Trading</button>
 </div>
 
 <!-- ================= TUTORIAL ================= -->
@@ -32,8 +32,19 @@
 
   <!-- TOP BAR -->
   <div class="topbar">
-    <div id="welcome">Welcome</div>
-    <div id="balance">Balance: $100</div>
+
+    <div class="left">
+      <div id="welcome">Welcome</div>
+    </div>
+
+    <div class="center">
+      <div id="balance">Balance: $100</div>
+    </div>
+
+    <div class="right">
+      <button onclick="logout()">Logout</button>
+    </div>
+
   </div>
 
   <!-- MAIN LAYOUT -->
