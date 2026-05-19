@@ -3,46 +3,63 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Broker Terminal PRO</title>
+<title>Broker Terminal V6</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- ================= TOP BAR ================= -->
+<!-- TOP BAR -->
 <div class="topbar">
-  <div class="brand">📈 Broker Terminal</div>
+  <div class="brand">📊 Broker Terminal V6</div>
 
   <div id="balance">Balance: $100</div>
 
   <div class="right">
-    <span id="welcome">Guest</span>
+    <span id="welcome"></span>
     <button onclick="logout()">Logout</button>
   </div>
 </div>
 
-<!-- ================= LOGIN ================= -->
+<!-- LOGIN -->
 <div id="loginScreen" class="screen">
-  <h1>Welcome Trader</h1>
-  <input id="usernameInput" placeholder="Enter username" />
-  <button onclick="startApp()">Start Trading</button>
+  <h1>Trading Platform</h1>
+  <input id="usernameInput" placeholder="Username" />
+  <button onclick="startApp()">Start</button>
 </div>
 
-<!-- ================= MAIN APP ================= -->
+<!-- TUTORIAL -->
+<div id="tutorialScreen" class="screen hidden">
+  <h2>Tutorial</h2>
+  <p id="tutorialText"></p>
+  <button onclick="nextTutorial()">Next</button>
+</div>
+
+<!-- APP -->
 <div id="app" class="hidden dashboard">
 
-  <!-- MARKET -->
   <div class="panel left">
-    <h3>Market Watch</h3>
+    <h3>Market</h3>
     <div id="market"></div>
   </div>
 
-  <!-- PORTFOLIO -->
   <div class="panel centerPanel">
     <h3>Portfolio</h3>
     <div id="portfolio"></div>
   </div>
 
+</div>
+
+<!-- CHART MODAL -->
+<div id="chartModal" class="hidden">
+  <div class="chartBox">
+    <div class="chartHeader">
+      <span id="chartTitle"></span>
+      <button onclick="closeChart()">✕</button>
+    </div>
+
+    <canvas id="chartCanvas"></canvas>
+  </div>
 </div>
 
 <script src="script.js"></script>
