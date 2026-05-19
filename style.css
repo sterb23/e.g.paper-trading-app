@@ -1,31 +1,33 @@
-/* ================= BASE ================= */
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background: #0b0f14;
-  color: #e5e7eb;
+  color: white;
 }
 
-/* ================= TOP BAR ================= */
+/* TOP BAR */
 .topbar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
+  padding: 12px;
   background: #0f1720;
   border-bottom: 1px solid #1f2937;
   position: sticky;
   top: 0;
-  z-index: 10;
-  flex-wrap: wrap;
 }
 
 .brand {
-  font-weight: bold;
   color: #60a5fa;
+  font-weight: bold;
 }
 
-/* ================= SCREEN ================= */
+.right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* SCREEN */
 .screen {
   height: 100vh;
   display: flex;
@@ -38,42 +40,33 @@ body {
   display: none;
 }
 
-/* ================= INPUTS ================= */
 input {
-  padding: 12px;
+  padding: 10px;
   margin-top: 10px;
   background: #111827;
   border: 1px solid #374151;
   color: white;
-  width: 220px;
-  border-radius: 6px;
 }
 
 button {
   margin-top: 10px;
-  padding: 10px 14px;
+  padding: 10px;
   background: #2563eb;
   border: none;
   color: white;
   cursor: pointer;
-  border-radius: 6px;
-  font-size: 14px;
 }
 
-button:hover {
-  background: #1d4ed8;
-}
-
-/* ================= DESKTOP LAYOUT ================= */
+/* LAYOUT */
 .dashboard {
   display: grid;
   grid-template-columns: 280px 1fr;
   height: calc(100vh - 60px);
 }
 
-/* ================= PANELS ================= */
+/* PANELS */
 .panel {
-  padding: 12px;
+  padding: 10px;
   overflow-y: auto;
 }
 
@@ -86,73 +79,18 @@ button:hover {
   background: #0b1220;
 }
 
-/* ================= STOCK CARD ================= */
+/* STOCKS */
 .stock {
   background: #111827;
   padding: 10px;
   margin-bottom: 10px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid #1f2937;
 }
 
-.stock button {
-  margin-right: 5px;
-  font-size: 12px;
-}
-
-/* ================= CARD ================= */
-.card {
-  margin-top: 20px;
-  padding: 15px;
-  background: #111827;
-  border: 1px solid #1f2937;
-  border-radius: 8px;
-}
-
-/* =====================================================
-   📱 MOBILE RESPONSIVE MODE
-===================================================== */
+/* MOBILE */
 @media (max-width: 768px) {
-
-  /* STACK LAYOUT */
   .dashboard {
     grid-template-columns: 1fr;
-    height: auto;
-  }
-
-  .left {
-    border-right: none;
-    border-bottom: 1px solid #1f2937;
-  }
-
-  .panel {
-    padding: 10px;
-  }
-
-  /* TOP BAR STACK */
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  /* STOCK CARDS BIGGER (TOUCH FRIENDLY) */
-  .stock {
-    padding: 14px;
-    font-size: 14px;
-  }
-
-  .stock button {
-    padding: 10px;
-    font-size: 13px;
-  }
-
-  /* INPUT FULL WIDTH */
-  input {
-    width: 90%;
-  }
-
-  button {
-    width: 100%;
   }
 }
