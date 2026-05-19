@@ -1,96 +1,121 @@
 let balance = 100;
 let portfolio = {};
-let step = 0;
+let prices = {
+  APPLE: 10,
+  TESLA: 20,
+  BITCOIN: 50
+};
 
-/* FAKE MARKET */
-let stocks = [
-  { name: "APPLE", price: 150 },
-  { name: "TESLA", price: 220 },
-  { name: "BITCOIN", price: 30000 }
+let chartData = [];
+let tutorialStep = 0;
+
+/* TUTORIAL */
+let tutorial = [
+  "Welcome to TradeLearn Pro.",
+  "You start with $100 virtual money.",
+  "This is a real trading simulator.",
+  "Buy low, sell high to make profit.",
+  "Markets move every few seconds.",
+  "You can trade Apple, Tesla, and Bitcoin.",
+  "Each asset behaves differently.",
+  "Your portfolio shows your holdings.",
+  "Chart shows total account value.",
+  "Finish tutorial to start trading."
 ];
 
 /* LOGIN */
 function startApp() {
-  const username = document.getElementById("usernameInput").value;
-
+  let username = document.getElementById("usernameInput").value;
   if (!username) return alert("Enter username");
 
   localStorage.setItem("username", username);
   localStorage.setItem("balance", 100);
 
   document.getElementById("loginScreen").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
+  document.getElementById("tutorialScreen").classList.remove("hidden");
 
-  loadApp();
+  showTutorial();
 }
 
-/* LOAD APP */
-function loadApp() {
-  const username = localStorage.getItem("username");
+/* TUTORIAL */
+function showTutorial() {
+  document.getElementById("tutorialText").innerText =
+    tutorial[tutorialStep];
+}
+
+function nextTutorial() {
+  tutorialStep++;
+
+  if (tutorialStep >= tutorial.length) {
+    finishTutorial();
+    return;
+  }
+
+  showTutorial();
+}
+
+function finishTutorial() {
+  document.getElementById("tutorialScreen").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+
+  let username = localStorage.getItem("username");
 
   document.getElementById("welcome").innerText =
     "Welcome " + username;
 
-  updateMarket();
-  updatePortfolio();
-  updateBalance();
-
-  setInterval(updatePrices, 3000);
+  renderMarket();
+  setInterval(updatePrices, 2500);
 }
 
-/* MARKET PRICES CHANGE */
-function updatePrices() {
-  stocks.forEach(s => {
-    let change = (Math.random() - 0.5) * 10;
-    s.price = Math.max(1, s.price + change);
-  });
-
-  updateMarket();
-}
-
-/* MARKET UI */
-function updateMarket() {
+/* MARKET */
+function renderMarket() {
   let html = "";
 
-  stocks.forEach((s, i) => {
+  for (let stock in prices) {
     html += `
       <div class="stock">
-        <b>${s.name}</b><br>
-        $${s.price.toFixed(2)}<br>
-        <button onclick="buy(${i})">Buy</button>
-        <button onclick="sell(${i})">Sell</button>
+        <b>${stock}</b><br>
+        Price: $${prices[stock].toFixed(2)}<br>
+        <button onclick="buy('${stock}')">Buy</button>
+        <button onclick="sell('${stock}')">Sell</button>
       </div>
     `;
-  });
+  }
 
   document.getElementById("market").innerHTML = html;
 }
 
-/* BUY */
-function buy(i) {
-  let stock = stocks[i];
-
-  if (balance < stock.price) {
-    alert("Not enough money");
-    return;
+/* PRICE MOVEMENT */
+function updatePrices() {
+  for (let stock in prices) {
+    let change = (Math.random() - 0.5) * 3;
+    prices[stock] += change;
+    prices[stock] = Math.max(1, prices[stock]);
   }
 
-  balance -= stock.price;
+  renderMarket();
+  updatePortfolio();
+  updateBalance();
+  updateChart();
+}
 
-  portfolio[stock.name] =
-    (portfolio[stock.name] || 0) + 1;
+/* BUY */
+function buy(stock) {
+  if (balance < prices[stock]) return alert("Not enough balance");
+
+  balance -= prices[stock];
+
+  portfolio[stock] = (portfolio[stock] || 0) + 1;
 
   updateAll();
 }
 
 /* SELL */
-function sell(i) {
-  let stock = stocks[i];
+function sell(stock) {
+  if (!portfolio[stock]) return;
 
-  if (!portfolio[stock.name]) return;
-
-  portfolio[stock.name] -= 1;
-  balance += stock.price;
+  portfolio[stock] -= 1;
+  balance += prices[stock];
 
   updateAll();
 }
@@ -99,11 +124,12 @@ function sell(i) {
 function updatePortfolio() {
   let html = "";
 
-  for (let key in portfolio) {
-    html += `<div>${key}: ${portfolio[key]}</div>`;
+  for (let stock in portfolio) {
+    html += `${stock}: ${portfolio[stock]}<br>`;
   }
 
-  document.getElementById("portfolio").innerHTML = html;
+  document.getElementById("portfolio").innerHTML =
+    html || "No holdings";
 }
 
 /* BALANCE */
@@ -118,40 +144,36 @@ function updateAll() {
   updateBalance();
 }
 
-/* TUTORIAL (10 PAGES) */
-let tutorialSteps = [
-  "Welcome! This app teaches you trading safely.",
-  "You start with $100 virtual money.",
-  "Prices change every few seconds.",
-  "Buy low, sell high to earn profit.",
-  "Each stock behaves randomly like real markets.",
-  "Your goal is to grow your balance.",
-  "You can view your portfolio anytime.",
-  "Losses are normal — this is practice.",
-  "Learn patience, not gambling.",
-  "Now go trade and have fun!"
-];
+/* CHART */
+function updateChart() {
+  let totalValue = balance;
 
-function openTutorial() {
-  document.getElementById("tutorial").classList.remove("hidden");
-  step = 0;
-  showStep();
-}
-
-function showStep() {
-  document.getElementById("tText").innerText =
-    tutorialSteps[step];
-}
-
-function nextStep() {
-  step++;
-  if (step >= tutorialSteps.length) {
-    closeTutorial();
-    return;
+  for (let stock in portfolio) {
+    totalValue += portfolio[stock] * prices[stock];
   }
-  showStep();
+
+  chartData.push(totalValue);
+
+  if (chartData.length > 25) chartData.shift();
+
+  drawChart();
 }
 
-function closeTutorial() {
-  document.getElementById("tutorial").classList.add("hidden");
+function drawChart() {
+  let canvas = document.getElementById("chart");
+  let ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.beginPath();
+
+  let startY = canvas.height - chartData[0] / 2;
+  ctx.moveTo(0, startY);
+
+  for (let i = 0; i < chartData.length; i++) {
+    ctx.lineTo(i * 14, canvas.height - chartData[i] / 2);
+  }
+
+  ctx.strokeStyle = "#00ff88";
+  ctx.stroke();
 }
