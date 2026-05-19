@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Broker Terminal V8</title>
+<title>Broker Terminal V8.1</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
+<!-- TOP BAR -->
 <div class="topbar">
-  <div class="brand">📊 Broker Terminal V8</div>
+  <div class="brand">📊 Broker Terminal V8.1</div>
 
   <div>Balance: $<span id="balance">100</span></div>
 
@@ -22,7 +23,7 @@
 
 <!-- LOGIN -->
 <div id="loginScreen" class="screen">
-  <h1>Trade Terminal V8</h1>
+  <h1>Trade Terminal</h1>
   <input id="usernameInput" placeholder="Username" />
   <button onclick="startApp()">Start</button>
 </div>
@@ -34,7 +35,7 @@
   <button onclick="nextTutorial()">Next</button>
 </div>
 
-<!-- APP -->
+<!-- MAIN APP -->
 <div id="app" class="hidden dashboard">
 
   <div class="panel left">
@@ -45,20 +46,24 @@
   <div class="panel center">
     <h3>Portfolio</h3>
     <div id="portfolio"></div>
-    <div id="pnl"></div>
   </div>
 
 </div>
 
-<!-- CHART -->
-<div id="chartModal" class="hidden">
-  <div class="chartBox">
-    <div class="chartHeader">
-      <span id="chartTitle"></span>
-      <button onclick="closeChart()">✕</button>
+<!-- ================= CHART MODAL (FIXED SAFE LAYER) ================= -->
+<div id="chartModal" class="hidden modal">
+
+  <div class="modalBox">
+
+    <div class="modalHeader">
+      <span>Chart</span>
+
+      <!-- IMPORTANT: THIS MUST CALL closeChart() -->
+      <button class="closeBtn" onclick="closeChart()">✕</button>
     </div>
 
     <canvas id="chartCanvas"></canvas>
+
   </div>
 </div>
 
