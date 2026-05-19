@@ -1,41 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trade Terminal</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Trade Terminal PRO</title>
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<!-- LOGIN -->
+<!-- ================= LOGIN ================= -->
 <div id="loginScreen" class="screen">
-  <h1>Trade Terminal</h1>
-  <input id="usernameInput" placeholder="Enter username">
-  <button onclick="startApp()">Start Trading</button>
+  <h1>Trade Terminal PRO</h1>
+
+  <input id="usernameInput" placeholder="Enter username" />
+
+  <button onclick="startApp()">Start</button>
 </div>
 
-<!-- TUTORIAL -->
+<!-- ================= TUTORIAL ================= -->
 <div id="tutorialScreen" class="screen hidden">
-  <h2>Trading Onboarding</h2>
+  <h2>Onboarding</h2>
+
   <p id="tutorialText"></p>
+
   <button onclick="nextTutorial()">Next</button>
 </div>
 
-<!-- APP -->
+<!-- ================= MAIN APP ================= -->
 <div id="app" class="hidden">
 
+  <!-- TOP BAR -->
   <div class="topbar">
-    <div id="welcome"></div>
-    <div id="balance"></div>
+    <div id="welcome">Welcome</div>
+    <div id="balance">Balance: $100</div>
   </div>
 
-  <div class="container">
-    <h3>Market Watch</h3>
-    <div id="market"></div>
+  <!-- MAIN LAYOUT -->
+  <div class="layout">
 
-    <h3>Portfolio</h3>
-    <div id="portfolio"></div>
+    <!-- MARKET -->
+    <div class="panel">
+      <h3>Market</h3>
+      <div id="market"></div>
+    </div>
+
+    <!-- PORTFOLIO -->
+    <div class="panel">
+      <h3>Portfolio</h3>
+      <div id="portfolio"></div>
+    </div>
+
   </div>
 
 </div>
