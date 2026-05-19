@@ -1,24 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paper Trading App</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeLearn App</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="container">
-    <h1>Paper Trading App</h1>
+<!-- LOGIN -->
+<div id="loginScreen" class="screen">
+  <h1>TradeLearn</h1>
+  <p>Enter a username to start (saved forever)</p>
 
-    <input id="username" placeholder="Username">
-    <input id="balance" placeholder="Starting Balance">
+  <input id="usernameInput" placeholder="Username">
+  <button onclick="startApp()">Start</button>
+</div>
 
-    <button onclick="createAccount()">Create Account</button>
+<!-- APP -->
+<div id="app" class="hidden">
 
-    <div id="output"></div>
+  <div class="topbar">
+    <h2 id="welcome"></h2>
+    <div id="balance">Balance: $100</div>
   </div>
 
-  <script src="script.js"></script>
+  <div class="container">
+
+    <h3>Market</h3>
+
+    <div id="market"></div>
+
+    <h3>Your Portfolio</h3>
+    <div id="portfolio"></div>
+
+    <button onclick="openTutorial()">📚 Tutorial</button>
+
+  </div>
+</div>
+
+<!-- TUTORIAL -->
+<div id="tutorial" class="hidden screen">
+  <h2 id="tTitle">Tutorial</h2>
+  <p id="tText"></p>
+
+  <button onclick="nextStep()">Next ➜</button>
+  <button onclick="closeTutorial()">Exit</button>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
