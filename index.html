@@ -1,72 +1,271 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Broker Terminal V8.1</title>
-<link rel="stylesheet" href="style.css">
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Sin of Pride</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a0b2e;
+            color: #d4af37; /* Gold */
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
 
+        #game-container {
+            background-color: #2a114c;
+            border: 2px solid #d4af37;
+            border-radius: 10px;
+            padding: 30px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .stats {
+            font-size: 1.5em;
+            margin: 20px 0;
+        }
+
+        #ego-count {
+            font-size: 2em;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        button {
+            background-color: #d4af37;
+            color: #1a0b2e;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.2s ease;
+            margin: 10px;
+        }
+
+        button:hover {
+            background-color: #f1c40f;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .upgrades {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .upgrade-btn {
+            background-color: #4a2377;
+            color: #d4af37;
+            border: 1px solid #d4af37;
+            font-size: 1em;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+        }
+
+        .upgrade-btn:hover {
+            background-color: #5c2c94;
+        }
+
+        .upgrade-btn:disabled {
+            background-color: #333;
+            color: #666;
+            border-color: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #message-log {
+            margin-top: 20px;
+            font-style: italic;
+            height: 40px;
+            color: #ff9999;
+        }
+
+        /* Hubris Screen */
+        #fall-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: black;
+            color: white;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #fall-screen h1 {
+            color: red;
+            font-size: 4em;
+        }
+    </style>
+</head>
 <body>
 
-<!-- TOP BAR -->
-<div class="topbar">
-  <div class="brand">📊 Broker Terminal V8.1</div>
+    <div id="game-container">
+        <h1>The Pinnacle of Pride</h1>
+        <p>Feed your ego. Become greater than them all.</p>
 
-  <div>Balance: $<span id="balance">100</span></div>
+        <div class="stats">
+            <div>Ego: <span id="ego-count">0</span></div>
+            <div style="font-size: 0.6em; margin-top: 5px;">Ego per second: <span id="eps-count">0</span></div>
+        </div>
 
-  <div>
-    <span id="welcome"></span>
-    <button onclick="logout()">Logout</button>
-  </div>
-</div>
+        <button onclick="boast()">Boast About Yourself (+1 Ego)</button>
 
-<!-- LOGIN -->
-<div id="loginScreen" class="screen">
-  <h1>Trade Terminal</h1>
-  <input id="usernameInput" placeholder="Username" />
-  <button onclick="startApp()">Start</button>
-</div>
+        <div id="message-log">You feel completely ordinary. Time to change that.</div>
 
-<!-- TUTORIAL -->
-<div id="tutorialScreen" class="screen hidden">
-  <h2>Tutorial</h2>
-  <p id="tutorialText"></p>
-  <button onclick="nextTutorial()">Next</button>
-</div>
-
-<!-- MAIN APP -->
-<div id="app" class="hidden dashboard">
-
-  <div class="panel left">
-    <h3>Market</h3>
-    <div id="market"></div>
-  </div>
-
-  <div class="panel center">
-    <h3>Portfolio</h3>
-    <div id="portfolio"></div>
-  </div>
-
-</div>
-
-<!-- ================= CHART MODAL (FIXED SAFE LAYER) ================= -->
-<div id="chartModal" class="hidden modal">
-
-  <div class="modalBox">
-
-    <div class="modalHeader">
-      <span>Chart</span>
-
-      <!-- IMPORTANT: THIS MUST CALL closeChart() -->
-      <button class="closeBtn" onclick="closeChart()">✕</button>
+        <div class="upgrades">
+            <h3>Vanity Upgrades</h3>
+            <button class="upgrade-btn" id="upg1" onclick="buyUpgrade('mirror')">
+                <span>Admire in Mirror (+1 Ego/sec)</span>
+                <span>Cost: <span id="cost-mirror">15</span></span>
+            </button>
+            <button class="upgrade-btn" id="upg2" onclick="buyUpgrade('portrait')">
+                <span>Commission Portrait (+5 Ego/sec)</span>
+                <span>Cost: <span id="cost-portrait">100</span></span>
+            </button>
+            <button class="upgrade-btn" id="upg3" onclick="buyUpgrade('statue')">
+                <span>Erect Golden Statue (+25 Ego/sec)</span>
+                <span>Cost: <span id="cost-statue">500</span></span>
+            </button>
+            <button class="upgrade-btn" id="upg4" onclick="buyUpgrade('cult')">
+                <span>Start a Personality Cult (+100 Ego/sec)</span>
+                <span>Cost: <span id="cost-cult">2500</span></span>
+            </button>
+        </div>
     </div>
 
-    <canvas id="chartCanvas"></canvas>
+    <!-- The End Game Screen -->
+    <div id="fall-screen">
+        <h1>HUBRIS</h1>
+        <p>Pride goeth before destruction, and an haughty spirit before a fall.</p>
+        <p>Your ego grew too large to be contained by the mortal realm. You have collapsed under your own weight.</p>
+        <button onclick="location.reload()" style="margin-top: 30px;">Be Born Anew</button>
+    </div>
 
-  </div>
-</div>
+    <script>
+        // Game State
+        let ego = 0;
+        let egoPerSecond = 0;
+        
+        // Upgrade Costs
+        let costs = {
+            mirror: 15,
+            portrait: 100,
+            statue: 500,
+            cult: 2500
+        };
 
-<script src="script.js"></script>
+        // DOM Elements
+        const egoDisplay = document.getElementById('ego-count');
+        const epsDisplay = document.getElementById('eps-count');
+        const messageLog = document.getElementById('message-log');
+        const fallScreen = document.getElementById('fall-screen');
+
+        // Click action
+        function boast() {
+            ego += 1;
+            updateDisplay();
+            updateMessage();
+            checkFall();
+        }
+
+        // Buy upgrades
+        function buyUpgrade(type) {
+            if (ego >= costs[type]) {
+                ego -= costs[type];
+                
+                if (type === 'mirror') {
+                    egoPerSecond += 1;
+                    costs.mirror = Math.floor(costs.mirror * 1.5);
+                    document.getElementById('cost-mirror').innerText = costs.mirror;
+                } else if (type === 'portrait') {
+                    egoPerSecond += 5;
+                    costs.portrait = Math.floor(costs.portrait * 1.5);
+                    document.getElementById('cost-portrait').innerText = costs.portrait;
+                } else if (type === 'statue') {
+                    egoPerSecond += 25;
+                    costs.statue = Math.floor(costs.statue * 1.5);
+                    document.getElementById('cost-statue').innerText = costs.statue;
+                } else if (type === 'cult') {
+                    egoPerSecond += 100;
+                    costs.cult = Math.floor(costs.cult * 1.5);
+                    document.getElementById('cost-cult').innerText = costs.cult;
+                }
+
+                updateDisplay();
+                updateMessage();
+            }
+        }
+
+        // Check if buttons should be disabled based on current ego
+        function checkButtons() {
+            document.getElementById('upg1').disabled = ego < costs.mirror;
+            document.getElementById('upg2').disabled = ego < costs.portrait;
+            document.getElementById('upg3').disabled = ego < costs.statue;
+            document.getElementById('upg4').disabled = ego < costs.cult;
+        }
+
+        // Update narrative messages based on total ego per second
+        function updateMessage() {
+            if (egoPerSecond > 200) {
+                messageLog.innerText = "You are a god among insects. Nothing can stop you.";
+            } else if (egoPerSecond > 50) {
+                messageLog.innerText = "The world revolves around you, as it rightly should.";
+            } else if (egoPerSecond > 10) {
+                messageLog.innerText = "Your brilliance is obvious to everyone around you.";
+            } else if (egoPerSecond > 0) {
+                messageLog.innerText = "You are starting to realize how much better you are than others.";
+            }
+        }
+
+        // Update numbers on screen
+        function updateDisplay() {
+            egoDisplay.innerText = Math.floor(ego);
+            epsDisplay.innerText = egoPerSecond;
+            checkButtons();
+        }
+
+        // The Fall (Endgame condition)
+        function checkFall() {
+            if (ego >= 10000) {
+                document.getElementById('game-container').style.display = 'none';
+                fallScreen.style.display = 'flex';
+            }
+        }
+
+        // Main game loop (runs 10 times a second for smooth generation)
+        setInterval(() => {
+            ego += egoPerSecond / 10;
+            updateDisplay();
+            checkFall();
+        }, 100);
+
+    </script>
 </body>
 </html>
